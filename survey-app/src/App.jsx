@@ -2,7 +2,7 @@ import './App.css'
 
 function App() {
   return (
-    <div style={{backgroundColor: '#121212', color: 'white', minHeight: '100vh'}}>
+    <div style={{backgroundColor: '#121212', color: 'white ', minHeight: '100vh'}}>
       <header style={{padding: '16px', fontWeight: 'bold', fontSize: '28px', borderBottom: '1px solid #2a2a2a'}}>
         GARI.OPROS
         </header>
