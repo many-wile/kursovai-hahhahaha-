@@ -1,3 +1,4 @@
+// src/components/AuthLayout.jsx
 import { Link } from 'react-router-dom'
 import { getStoredUser } from '../lib/tokenStorage.js'
 

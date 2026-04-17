@@ -1,3 +1,4 @@
+// src/components/Toasts.jsx
 import { useToast } from '../contexts/ToastContext.jsx'
 
 export default function Toasts() {

@@ -2,7 +2,7 @@
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import AppRouter from './AppRouter.jsx'
-import { ToastProvider } from './contexts/ToastContext.jsx'
+import { ToastProvider } from './contexts/ToastContext.jsx'   // ← изменён путь
 import './App.css'
 import './index.css'
 

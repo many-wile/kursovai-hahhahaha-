@@ -18,7 +18,6 @@ function LoginPage() {
     e.preventDefault()
     setBusy(true)
     setError('')
-
     try {
       await loginUser({ email: email.trim(), password })
       pushToast('success', 'Вход выполнен')
