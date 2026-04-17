@@ -1,4 +1,4 @@
-﻿const TOKENS_KEY = 'survey_app_tokens'
+const TOKENS_KEY = 'survey_app_tokens'
 const USER_KEY = 'survey_app_user'
 const TOKEN_KEY = 'token'
 

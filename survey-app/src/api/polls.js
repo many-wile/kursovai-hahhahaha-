@@ -1,4 +1,4 @@
-﻿import { request } from './client.js'
+import { request } from './client.js'
 import { ENDPOINTS } from './endpoints.js'
 import { ApiError } from '../lib/apiError.js'
 

@@ -1,4 +1,4 @@
-﻿import { ENDPOINTS, API_BASE_URL } from './endpoints.js'
+import { ENDPOINTS, API_BASE_URL } from './endpoints.js'
 import { USE_MOCK_API, mockRequest } from './mockServer.js'
 import { ApiError } from '../lib/apiError.js'
 import { clearStoredTokens, getStoredTokens, saveStoredTokens } from '../lib/tokenStorage.js'

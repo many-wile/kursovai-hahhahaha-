@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { loginUser, logoutUser, registerUser } from './api/auth.js'
 import { downloadAttachment, uploadAttachment } from './api/files.js'
