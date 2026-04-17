@@ -1,8 +1,10 @@
-﻿import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { deletePoll, getPolls } from '../api/polls.js'
 import { downloadAttachment } from '../api/files.js'
 import { toUserMessage } from '../lib/apiError.js'
+import { useToast } from '../contexts/ToastContext.jsx'
+import { getStoredTokens } from '../lib/tokenStorage.js'
 
 function downloadBlob(blob, fileName) {
   const url = URL.createObjectURL(blob)
@@ -13,17 +15,23 @@ function downloadBlob(blob, fileName) {
   URL.revokeObjectURL(url)
 }
 
-function PollsPage() {
+export default function PollsPage() {
+  const { pushToast } = useToast()
+  const { accessToken } = getStoredTokens()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const initialQuery = searchParams.get('query') || ''
+
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [queryInput, setQueryInput] = useState('')
-  const [query, setQuery] = useState('')
+  const [queryInput, setQueryInput] = useState(initialQuery)
+  const [query, setQuery] = useState(initialQuery)
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(5)
+  const [pageSize] = useState(6)
   const [totalCount, setTotalCount] = useState(0)
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / pageSize)), [pageSize, totalCount])
 
   const load = useCallback(
     async (targetPage = page, targetQuery = query) => {
@@ -35,13 +43,15 @@ function PollsPage() {
         setItems(data.items)
         setTotalCount(data.totalCount)
       } catch (err) {
-        setError(toUserMessage(err))
+        const message = toUserMessage(err)
+        setError(message)
+        pushToast('error', message)
         setItems([])
       } finally {
         setLoading(false)
       }
     },
-    [page, pageSize, query],
+    [page, pageSize, pushToast, query],
   )
 
   useEffect(() => {
@@ -50,100 +60,131 @@ function PollsPage() {
 
   const onSearch = (event) => {
     event.preventDefault()
+    const normalized = queryInput.trim()
     setPage(1)
-    setQuery(queryInput)
+    setQuery(normalized)
+
+    if (normalized) {
+      setSearchParams({ query: normalized })
+    } else {
+      setSearchParams({})
+    }
   }
 
   const onDelete = async (id) => {
+    if (!accessToken) {
+      pushToast('warning', 'Для удаления нужен вход в аккаунт')
+      return
+    }
+
     if (!window.confirm('Удалить опрос?')) {
       return
     }
 
     try {
       await deletePoll(id)
+      pushToast('success', 'Опрос удалён')
       await load(page, query)
     } catch (err) {
-      setError(toUserMessage(err))
+      const message = toUserMessage(err)
+      pushToast('error', message)
+      setError(message)
     }
   }
 
   const onDownload = async (poll) => {
     if (!poll.attachmentId) {
+      pushToast('warning', 'Файл не прикреплён')
       return
     }
 
     try {
       const blob = await downloadAttachment(poll.attachmentId)
       downloadBlob(blob, poll.attachmentName || `poll-${poll.id}.bin`)
+      pushToast('success', 'Файл скачан')
     } catch (err) {
-      setError(toUserMessage(err))
+      const message = toUserMessage(err)
+      pushToast('error', message)
+      setError(message)
     }
   }
 
   return (
-    <section className="panel panel-main">
-      <div className="panel-head">
-        <h1>Опросы</h1>
-        <Link to="/polls/new" className="btn">
-          Создать опрос
-        </Link>
+    <section className="card">
+      <div className="card-head">
+        <h2>Все опросы</h2>
+        <div className="actions-row">
+          <span className="muted">Страница {page} из {totalPages}</span>
+          {accessToken ? (
+            <Link to="/polls/new" className="gold-btn">
+              Создать опрос
+            </Link>
+          ) : null}
+        </div>
       </div>
 
-      <form className="search" onSubmit={onSearch}>
+      <form className="hero-search search-wide" onSubmit={onSearch}>
         <input
           type="search"
           placeholder="Поиск опросов"
           value={queryInput}
           onChange={(event) => setQueryInput(event.target.value)}
         />
-        <button className="btn btn-small" type="submit">
-          Найти
-        </button>
       </form>
 
       {error ? <p className="error-box">{error}</p> : null}
       {loading ? <p className="muted">Загрузка...</p> : null}
 
-      <div className="polls-grid">
+      <div className="poll-grid">
         {items.map((poll) => (
           <article key={poll.id} className="poll-card">
+            <div className="photo-placeholder">Место для фото обложки</div>
             <h3>{poll.title}</h3>
-            <p>{poll.description || 'Без описания'}</p>
+            <p>{poll.description || 'Описание отсутствует'}</p>
             <p className="muted">
-              {poll.attachmentId ? `Файл: ${poll.attachmentName || poll.attachmentId}` : 'Файл не прикреплен'}
+              {poll.attachmentId ? `Файл: ${poll.attachmentName || poll.attachmentId}` : 'Файл не прикреплён'}
             </p>
 
-            <div className="card-actions">
-              <Link className="btn btn-soft" to={`/polls/${poll.id}/edit`}>
-                Редактировать
+            <div className="actions-row">
+              <Link className="soft-btn" to={`/polls/${poll.id}`}>
+                Подробнее
               </Link>
-              <Link className="btn btn-soft" to={`/polls/${poll.id}/stats`}>
+              <button type="button" className="soft-btn" onClick={() => onDownload(poll)}>
+                Скачать
+              </button>
+              <Link className="soft-btn" to={`/polls/${poll.id}/stats`}>
                 Статистика
               </Link>
-              <button type="button" className="btn btn-soft" onClick={() => onDownload(poll)}>
-                Скачать файл
-              </button>
-              <button type="button" className="btn btn-danger" onClick={() => onDelete(poll.id)}>
-                Удалить
-              </button>
+              {accessToken ? (
+                <Link className="soft-btn" to={`/polls/${poll.id}/edit`}>
+                  Редактировать
+                </Link>
+              ) : null}
+              {accessToken ? (
+                <button type="button" className="danger-btn" onClick={() => onDelete(poll.id)}>
+                  Удалить
+                </button>
+              ) : null}
             </div>
           </article>
         ))}
       </div>
 
+      {!loading && !items.length ? <p className="muted">По запросу ничего не найдено.</p> : null}
+
       <div className="pager">
-        <button type="button" className="btn btn-soft" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+        <button type="button" className="soft-btn" disabled={page <= 1} onClick={() => setPage((prev) => prev - 1)}>
           Назад
         </button>
-        <span className="muted">
-          Страница {page} из {totalPages}
-        </span>
-        <button type="button" className="btn btn-soft" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
-          Вперед
+        <button
+          type="button"
+          className="soft-btn"
+          disabled={page >= totalPages}
+          onClick={() => setPage((prev) => prev + 1)}
+        >
+          Вперёд
         </button>
       </div>
     </section>
   )
 }
-
-export default PollsPage

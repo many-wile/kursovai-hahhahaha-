@@ -1,22 +1,25 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+﻿import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { registerUser } from '../api/auth.js'
 import { toUserMessage } from '../lib/apiError.js'
+import { useToast } from '../contexts/ToastContext.jsx'
 
-function RegisterPage() {
+export default function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { pushToast } = useToast()
 
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  const onChange = (e) => {
-    const { name, value } = e.target
-    setForm((p) => ({ ...p, [name]: value }))
+  const onChange = (event) => {
+    const { name, value } = event.target
+    setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const onSubmit = async (e) => {
-    e.preventDefault()
+  const onSubmit = async (event) => {
+    event.preventDefault()
     setBusy(true)
     setError('')
 
@@ -27,23 +30,47 @@ function RegisterPage() {
         email: form.email.trim(),
         password: form.password,
       })
-      navigate('/polls', { replace: true })
+      pushToast('success', 'Аккаунт создан')
+      navigate(location.state?.from || '/polls', { replace: true })
     } catch (err) {
-      setError(toUserMessage(err))
+      const message = toUserMessage(err)
+      setError(message)
+      pushToast('error', message)
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <section className="panel auth-page">
-      <h1>Регистрация</h1>
+    <section className="card auth-card">
+      <h2>Регистрация</h2>
 
-      <form className="stack" onSubmit={onSubmit}>
-        <input name="name" type="text" placeholder="Имя" value={form.name} onChange={onChange} required />
-        <input name="email" type="email" placeholder="Email" value={form.email} onChange={onChange} required />
-        <input name="password" type="password" placeholder="Пароль" value={form.password} onChange={onChange} minLength={6} required />
-        <button className="btn" disabled={busy}>{busy ? 'Создаем...' : 'Создать аккаунт'}</button>
+      <form className="form-grid" onSubmit={onSubmit}>
+        <label>
+          Имя
+          <input name="name" type="text" value={form.name} onChange={onChange} required />
+        </label>
+
+        <label>
+          Email
+          <input name="email" type="email" value={form.email} onChange={onChange} required />
+        </label>
+
+        <label>
+          Пароль
+          <input
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={onChange}
+            minLength={6}
+            required
+          />
+        </label>
+
+        <button type="submit" className="gold-btn" disabled={busy}>
+          {busy ? 'Создаём...' : 'Создать аккаунт'}
+        </button>
       </form>
 
       {error ? <p className="error-box">{error}</p> : null}
@@ -54,5 +81,3 @@ function RegisterPage() {
     </section>
   )
 }
-
-export default RegisterPage

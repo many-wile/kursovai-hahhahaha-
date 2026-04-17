@@ -1,4 +1,5 @@
-﻿import { ENDPOINTS, API_BASE_URL } from './endpoints.js'
+import { ENDPOINTS, API_BASE_URL } from './endpoints.js'
+import { USE_MOCK_API, mockRequest } from './mockServer.js'
 import { ApiError } from '../lib/apiError.js'
 import { clearStoredTokens, getStoredTokens, saveStoredTokens } from '../lib/tokenStorage.js'
 
@@ -64,6 +65,37 @@ function getErrorMessage(payload) {
   return ''
 }
 
+async function executeHttp(path, { method, headers, body, expect, signal }) {
+  if (USE_MOCK_API) {
+    return mockRequest(path, {
+      method,
+      headers,
+      body,
+      expect,
+      signal,
+    })
+  }
+
+  const response = await fetch(joinUrl(path), {
+    method,
+    headers,
+    body,
+    signal,
+  })
+
+  if (!response.ok) {
+    const payload = await parseResponseBody(response)
+    const message = inferMessage(response.status, getErrorMessage(payload))
+    throw new ApiError(message, response.status, payload)
+  }
+
+  if (expect === 'blob') {
+    return response.blob()
+  }
+
+  return parseResponseBody(response)
+}
+
 async function refreshTokens() {
   const tokens = getStoredTokens()
 
@@ -115,7 +147,6 @@ export async function request(path, options = {}) {
   } = options
 
   const tokens = getStoredTokens()
-  const url = joinUrl(path)
 
   const finalHeaders = {
     ...headers,
@@ -132,33 +163,30 @@ export async function request(path, options = {}) {
     finalHeaders.Authorization = `Bearer ${tokens.accessToken}`
   }
 
-  const response = await fetch(url, {
-    method,
-    headers: finalHeaders,
-    body: finalBody,
-    signal,
-  })
-
-  if (response.status === 401 && auth && retryOnUnauthorized) {
-    const refreshed = await refreshTokens()
-
-    if (refreshed) {
-      return request(path, {
-        ...options,
-        retryOnUnauthorized: false,
-      })
+  try {
+    return await executeHttp(path, {
+      method,
+      headers: finalHeaders,
+      body: finalBody,
+      expect,
+      signal,
+    })
+  } catch (error) {
+    if (!(error instanceof ApiError)) {
+      throw error
     }
-  }
 
-  if (!response.ok) {
-    const payload = await parseResponseBody(response)
-    const message = inferMessage(response.status, getErrorMessage(payload))
-    throw new ApiError(message, response.status, payload)
-  }
+    if (error.status === 401 && auth && retryOnUnauthorized) {
+      const refreshed = await refreshTokens()
 
-  if (expect === 'blob') {
-    return response.blob()
-  }
+      if (refreshed) {
+        return request(path, {
+          ...options,
+          retryOnUnauthorized: false,
+        })
+      }
+    }
 
-  return parseResponseBody(response)
+    throw error
+  }
 }

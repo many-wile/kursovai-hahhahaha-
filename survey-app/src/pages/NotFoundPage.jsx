@@ -1,13 +1,17 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 
-function NotFoundPage() {
+export default function NotFoundPage() {
   return (
-    <section className="panel">
-      <h1>404</h1>
-      <p>Страница не найдена.</p>
-      <Link className="btn" to="/polls">На главную</Link>
-    </section>
+    <div className="app-shell">
+      <main className="container page-content">
+        <section className="card not-found-card">
+          <h2>404</h2>
+          <p className="muted">Страница не найдена</p>
+          <Link to="/" className="gold-btn">
+            На главную
+          </Link>
+        </section>
+      </main>
+    </div>
   )
 }
-
-export default NotFoundPage

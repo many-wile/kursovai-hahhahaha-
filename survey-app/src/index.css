@@ -1,12 +1,5 @@
-﻿* {
+* {
   box-sizing: border-box;
-}
-
-:root {
-  color: #f6fcff;
-  font-family: 'Manrope', sans-serif;
-  line-height: 1.4;
-  font-weight: 500;
 }
 
 html,
@@ -17,6 +10,9 @@ body,
 
 body {
   margin: 0;
+  font-family: 'Manrope', sans-serif;
+  color: var(--text);
+  background: #040507;
 }
 
 a {

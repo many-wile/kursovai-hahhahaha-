@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom'
+﻿import { Navigate, useLocation } from 'react-router-dom'
 import { getStoredTokens } from '../lib/tokenStorage.js'
 
 export default function ProtectedRoute({ children }) {

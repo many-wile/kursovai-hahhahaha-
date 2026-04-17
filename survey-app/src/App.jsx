@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { loginUser, logoutUser, registerUser } from './api/auth.js'
 import { downloadAttachment, uploadAttachment } from './api/files.js'
@@ -484,7 +484,7 @@ function App() {
       <header className="topbar-wrap">
         <div className="topbar">
           <a href="/" className="logo" onClick={(event) => onLinkClick(event, '/')}>
-            gart<span>.opros</span>
+            gari<span>.opros</span>
           </a>
 
           <div className="top-actions">
@@ -836,3 +836,4 @@ function App() {
 }
 
 export default App
+

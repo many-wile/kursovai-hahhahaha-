@@ -1,4 +1,4 @@
-﻿export class ApiError extends Error {
+export class ApiError extends Error {
   constructor(message, status = 0, details = null) {
     super(message)
     this.name = 'ApiError'
@@ -17,12 +17,17 @@ export function toUserMessage(error) {
       return 'Запрошенный ресурс не найден (404).'
     }
 
+    if (error.status === 405 || error.status === 501) {
+      return 'Этот метод пока не реализован на backend.'
+    }
+
     return error.message || 'Ошибка запроса к API.'
   }
 
   if (error instanceof TypeError) {
-    return 'Сетевая ошибка. Проверьте API URL и подключение.'
+    return 'Сетевая ошибка. Проверьте запуск backend и frontend.'
   }
 
   return 'Произошла непредвиденная ошибка.'
 }
+

@@ -1,5 +1,6 @@
-﻿const TOKENS_KEY = 'survey_app_tokens'
+const TOKENS_KEY = 'survey_app_tokens'
 const USER_KEY = 'survey_app_user'
+const TOKEN_KEY = 'token'
 
 function safeParse(value) {
   if (!value) {
@@ -15,9 +16,11 @@ function safeParse(value) {
 
 export function getStoredTokens() {
   const parsed = safeParse(localStorage.getItem(TOKENS_KEY))
+  const legacyToken = localStorage.getItem(TOKEN_KEY) || ''
+
   return {
-    accessToken: parsed?.accessToken ?? '',
-    refreshToken: parsed?.refreshToken ?? '',
+    accessToken: parsed?.accessToken || legacyToken,
+    refreshToken: parsed?.refreshToken || '',
   }
 }
 
@@ -26,11 +29,19 @@ export function saveStoredTokens(tokens) {
     accessToken: tokens?.accessToken ?? '',
     refreshToken: tokens?.refreshToken ?? '',
   }
+
   localStorage.setItem(TOKENS_KEY, JSON.stringify(payload))
+
+  if (payload.accessToken) {
+    localStorage.setItem(TOKEN_KEY, payload.accessToken)
+  } else {
+    localStorage.removeItem(TOKEN_KEY)
+  }
 }
 
 export function clearStoredTokens() {
   localStorage.removeItem(TOKENS_KEY)
+  localStorage.removeItem(TOKEN_KEY)
 }
 
 export function getStoredUser() {

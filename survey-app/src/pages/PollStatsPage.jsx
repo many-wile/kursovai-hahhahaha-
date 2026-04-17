@@ -1,56 +1,45 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { registerUser } from '../api/auth.js'
+﻿import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { getPollById } from '../api/polls.js'
 import { toUserMessage } from '../lib/apiError.js'
 
-export default function RegisterPage() {
-  const navigate = useNavigate()
-
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
-  const [busy, setBusy] = useState(false)
+export default function PollStatsPage() {
+  const { id } = useParams()
+  const [poll, setPoll] = useState(null)
   const [error, setError] = useState('')
 
-  const onChange = (e) => {
-    const { name, value } = e.target
-    setForm((p) => ({ ...p, [name]: value }))
-  }
-
-  const onSubmit = async (e) => {
-    e.preventDefault()
-    setBusy(true)
-    setError('')
-
-    try {
-      await registerUser({
-        name: form.name.trim(),
-        userName: form.name.trim(),
-        email: form.email.trim(),
-        password: form.password,
-      })
-      navigate('/polls', { replace: true })
-    } catch (err) {
-      setError(toUserMessage(err))
-    } finally {
-      setBusy(false)
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const payload = await getPollById(id)
+        setPoll(payload)
+      } catch (err) {
+        setError(toUserMessage(err))
+      }
     }
-  }
+
+    void load()
+  }, [id])
 
   return (
-    <section className="panel auth-page">
-      <h1>Регистрация</h1>
+    <section className="card">
+      <div className="card-head">
+        <h2>Статистика опроса</h2>
+        <Link to={`/polls/${id}`} className="soft-btn">
+          Назад
+        </Link>
+      </div>
 
-      <form className="stack" onSubmit={onSubmit}>
-        <input name="name" type="text" placeholder="Имя" value={form.name} onChange={onChange} required />
-        <input name="email" type="email" placeholder="Email" value={form.email} onChange={onChange} required />
-        <input name="password" type="password" placeholder="Пароль" value={form.password} onChange={onChange} minLength={6} required />
-        <button className="btn" disabled={busy}>{busy ? 'Создаем...' : 'Создать аккаунт'}</button>
-      </form>
-
+      {poll ? <p className="muted">Опрос: {poll.title}</p> : null}
       {error ? <p className="error-box">{error}</p> : null}
 
-      <p className="muted">
-        Уже есть аккаунт? <Link to="/login">Войти</Link>
-      </p>
+      <div className="stats-grid">
+        <div className="photo-placeholder">Диаграмма 1 (плейсхолдер)</div>
+        <div className="photo-placeholder">Диаграмма 2 (плейсхолдер)</div>
+        <div className="photo-placeholder">Диаграмма 3 (плейсхолдер)</div>
+      </div>
+
+      <p className="muted">Когда API статистики будет готово, сюда подключатся реальные данные голосований.</p>
     </section>
   )
 }
