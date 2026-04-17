@@ -20,8 +20,27 @@ public class SurveysController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<SurveyItem>>> GetSurveys() =>
-        await _context.Surveys.Include(s => s.Questions).ToListAsync();
+    public async Task<ActionResult<object>> GetSurveys()
+    {
+        var surveys = await _context.Surveys.Include(s => s.Questions).ToListAsync();
+        return Ok(new
+        {
+            items = surveys,
+            totalCount = surveys.Count,
+            page = 1,
+            pageSize = 10
+        });
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<SurveyItem>> GetSurvey(int id)
+    {
+        var survey = await _context.Surveys.Include(s => s.Questions)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (survey == null) return NotFound();
+        return survey;
+    }
 
     [HttpPost]
     [Authorize]
@@ -32,36 +51,25 @@ public class SurveysController : ControllerBase
         return CreatedAtAction(nameof(GetSurveys), new { id = item.Id }, item);
     }
 
-    [HttpPost("{id}/upload-image")]
+    [HttpPut("{id}")]
     [Authorize]
-    public async Task<IActionResult> UploadImage(int id, IFormFile file)
+    public async Task<IActionResult> UpdateSurvey(int id, SurveyItem item)
     {
-        var survey = await _context.Surveys.FindAsync(id);
-        if (survey == null) return NotFound("Опрос не найден");
+        if (id != item.Id) return BadRequest();
 
-        if (file == null || file.Length == 0) return BadRequest("Файл не выбран");
+        _context.Entry(item).State = EntityState.Modified;
 
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-        var extension = Path.GetExtension(file.FileName).ToLower();
-        if (!allowedExtensions.Contains(extension))
-            return BadRequest("Недопустимый формат. Разрешены только .jpg, .jpeg, .png");
-
-        if (file.Length > 2 * 1024 * 1024)
-            return BadRequest("Файл слишком велик. Максимальный размер 2 МБ");
-
-        string fileName = $"survey_{id}{extension}";
-        string uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-
-        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
-        string filePath = Path.Combine(uploadsFolder, fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        try
         {
-            await file.CopyToAsync(stream);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!_context.Surveys.Any(e => e.Id == id)) return NotFound();
+            throw;
         }
 
-        return Ok(new { message = "Картинка успешно загружена", fileName = fileName });
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
@@ -70,8 +78,62 @@ public class SurveysController : ControllerBase
     {
         var survey = await _context.Surveys.FindAsync(id);
         if (survey == null) return NotFound();
+
         _context.Surveys.Remove(survey);
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    [HttpPost("{id}/upload-image")]
+    [Authorize]
+    public async Task<IActionResult> UploadImage(int id, IFormFile file)
+    {
+        var survey = await _context.Surveys.FindAsync(id);
+        if (survey == null) return NotFound();
+
+        if (file == null || file.Length == 0) return BadRequest();
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        if (!allowedExtensions.Contains(extension)) return BadRequest();
+
+        if (file.Length > 2 * 1024 * 1024) return BadRequest();
+
+        string fileName = $"survey_{id}{extension}";
+        string path = Path.Combine(_env.WebRootPath, "uploads", fileName);
+
+        using (var stream = new FileStream(path, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        survey.ImagePath = fileName;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { fileName });
+    }
+
+    [HttpGet("{id}/image")]
+    public IActionResult GetImage(int id)
+    {
+        var extensions = new[] { ".jpg", ".jpeg", ".png" };
+        string filePath = "";
+        string fileName = "";
+
+        foreach (var ext in extensions)
+        {
+            var path = Path.Combine(_env.WebRootPath, "uploads", $"survey_{id}{ext}");
+            if (System.IO.File.Exists(path))
+            {
+                filePath = path;
+                fileName = $"survey_{id}{ext}";
+                break;
+            }
+        }
+
+        if (string.IsNullOrEmpty(filePath)) return NotFound();
+
+        var fileBytes = System.IO.File.ReadAllBytes(filePath);
+        return File(fileBytes, "image/jpeg", fileName);
     }
 }

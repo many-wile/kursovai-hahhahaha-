@@ -218,7 +218,7 @@ function maybeFailNetwork() {
   }
 }
 
-export const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false'
+export const USE_MOCK_API = false
 
 export async function mockRequest(path, options = {}) {
   const { method = 'GET', body, headers = {}, expect = 'json' } = options
