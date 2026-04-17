@@ -35,4 +35,22 @@ public class AuthController : ControllerBase
 
         return Ok(user);
     }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<string>> Login(UserLoginDto request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        if (user == null)
+        {
+            return BadRequest("Пользователь не найден.");
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        {
+            return BadRequest("Неверный пароль.");
+        }
+
+        return Ok("Вы успешно вошли!");
+    }
 }
