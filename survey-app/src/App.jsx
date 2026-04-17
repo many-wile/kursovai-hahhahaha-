@@ -324,8 +324,7 @@ function App() {
 
     try {
       const payload = {
-        name: authForm.name.trim(),
-        userName: authForm.name.trim(),
+        fullName: authForm.name.trim(),
         email: authForm.email.trim(),
         password: authForm.password,
       }

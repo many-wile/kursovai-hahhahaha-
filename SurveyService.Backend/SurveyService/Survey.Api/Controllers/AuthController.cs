@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<User>> Register(UserRegisterDto request)
+    public async Task<ActionResult<object>> Register(UserRegisterDto request)
     {
         if (await _context.Users.AnyAsync(u => u.Email == request.Email))
         {
@@ -44,7 +44,13 @@ public class AuthController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return Ok(user);
+        string token = CreateToken(user);
+
+        return Ok(new
+        {
+            user = user,
+            accessToken = token
+        });
     }
 
     [HttpPost("login")]
