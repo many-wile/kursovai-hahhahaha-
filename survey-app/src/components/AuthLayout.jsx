@@ -1,4 +1,3 @@
-// src/components/AuthLayout.jsx
 import { Link } from 'react-router-dom'
 import { getStoredUser } from '../lib/tokenStorage.js'
 
@@ -11,6 +10,7 @@ export default function AuthLayout({ children }) {
         <Link to="/" className="logo">
           gart<span>.opros</span>
         </Link>
+
         <div className="header-actions">
           <div className="user-pill" title={user?.email || user?.name || 'Гость'}>
             <span>{user?.name || user?.email || 'Гость'}</span>
@@ -29,3 +29,4 @@ export default function AuthLayout({ children }) {
     </div>
   )
 }
+

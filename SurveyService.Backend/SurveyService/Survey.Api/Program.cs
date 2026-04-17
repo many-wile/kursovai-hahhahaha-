@@ -77,10 +77,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+<<<<<<< HEAD
 app.UseStaticFiles();
 
 app.UseCors("AllowAll");
 
+=======
+>>>>>>> 96695a38b2d4e8c99a68ff48ee84c1a3ea52d03d
 app.UseAuthentication();
 app.UseAuthorization();
 
