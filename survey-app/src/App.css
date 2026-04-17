@@ -1,17 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Unbounded:wght@500;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Unbounded:wght@500;700&display=swap');
 
 :root {
   --bg: #0e0f0f;
   --panel: #17192a;
   --panel-soft: #1e1f31;
-  --line: rgba(255, 255, 255, 0.14);
+  --line: rgba(243, 243, 243, 0.14);
   --text: #f7f8ff;
   --muted: #c4cae3;
   --accent: #8a47d8;
   --gold: #d1d122;
   --danger: #b83a4b;
   --page-bg-image: url('./assets/city.png');
-  --hero-bg-image: url('./assets/gariopros.png');
+  --hero-bg-image: url('./assets/gariopros.png'); 
 }
 
 .app-shell {
