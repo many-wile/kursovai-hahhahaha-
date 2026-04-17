@@ -1,7 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { deletePoll, getPolls } from '../api/polls.js'
-import { downloadAttachment } from '../api/files.js'
+import { downloadAttachment, getAttachmentPreviewUrl, isImageAttachment } from '../api/files.js'
 import { toUserMessage } from '../lib/apiError.js'
 import { useToast } from '../contexts/ToastContext.jsx'
 import { getStoredTokens } from '../lib/tokenStorage.js'
@@ -13,6 +13,10 @@ function downloadBlob(blob, fileName) {
   anchor.download = fileName || 'file.bin'
   anchor.click()
   URL.revokeObjectURL(url)
+}
+
+function hasCoverImage(poll) {
+  return Boolean(poll?.attachmentId && isImageAttachment(poll.attachmentName || poll.imagePath))
 }
 
 export default function PollsPage() {
@@ -138,7 +142,12 @@ export default function PollsPage() {
       <div className="poll-grid">
         {items.map((poll) => (
           <article key={poll.id} className="poll-card">
-            <div className="photo-placeholder">Место для фото обложки</div>
+            {hasCoverImage(poll) ? (
+              <img className="poll-cover-image" src={getAttachmentPreviewUrl(poll.attachmentId)} alt={poll.title} loading="lazy" />
+            ) : (
+              <div className="photo-placeholder">Место для фото обложки</div>
+            )}
+
             <h3>{poll.title}</h3>
             <p>{poll.description || 'Описание отсутствует'}</p>
             <p className="muted">

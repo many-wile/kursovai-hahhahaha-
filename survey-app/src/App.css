@@ -524,3 +524,60 @@ textarea:focus {
 }
 
 
+
+.poll-cover-image {
+  width: 100%;
+  min-height: 110px;
+  max-height: 220px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.poll-cover-image-large {
+  min-height: 220px;
+  max-height: 340px;
+  margin: 10px 0 14px;
+}
+
+.editor-cover-tools {
+  margin: 10px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.editor-cover-slider-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.editor-cover-slider-row input[type='range'] {
+  width: 100%;
+}
+
+.editor-cover-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 10px 0 14px;
+  border-radius: 10px;
+  border: 2px dashed rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+
+.editor-cover-frame.dragging {
+  cursor: grabbing;
+}
+
+.editor-cover-image-inner {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: center;
+  pointer-events: none;
+}

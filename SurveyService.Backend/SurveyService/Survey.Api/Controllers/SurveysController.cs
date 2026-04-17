@@ -56,18 +56,18 @@ public class SurveysController : ControllerBase
     public async Task<IActionResult> UpdateSurvey(int id, SurveyItem item)
     {
         if (id != item.Id) return BadRequest();
+        
+        var existing = await _context.Surveys.FindAsync(id);
+        if (existing == null) return NotFound();
 
-        _context.Entry(item).State = EntityState.Modified;
+        existing.Title = item.Title;
+        existing.Description = item.Description;
+        if (!string.IsNullOrWhiteSpace(item.ImagePath))
+        {
+            existing.ImagePath = item.ImagePath;
+        }
 
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!_context.Surveys.Any(e => e.Id == id)) return NotFound();
-            throw;
-        }
+        await _context.SaveChangesAsync();
 
         return NoContent();
     }
@@ -134,6 +134,9 @@ public class SurveysController : ControllerBase
         if (string.IsNullOrEmpty(filePath)) return NotFound();
 
         var fileBytes = System.IO.File.ReadAllBytes(filePath);
+        Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+        Response.Headers.Pragma = "no-cache";
+        Response.Headers.Expires = "0";
         return File(fileBytes, "image/jpeg", fileName);
     }
 }

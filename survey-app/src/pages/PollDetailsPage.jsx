@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { downloadAttachment } from '../api/files.js'
+import { downloadAttachment, getAttachmentPreviewUrl, isImageAttachment } from '../api/files.js'
 import { getPollById } from '../api/polls.js'
 import { toUserMessage } from '../lib/apiError.js'
 import { useToast } from '../contexts/ToastContext.jsx'
@@ -12,6 +12,10 @@ function downloadBlob(blob, fileName) {
   anchor.download = fileName || 'file.bin'
   anchor.click()
   URL.revokeObjectURL(url)
+}
+
+function hasCoverImage(poll) {
+  return Boolean(poll?.attachmentId && isImageAttachment(poll.attachmentName || poll.imagePath))
 }
 
 export default function PollDetailsPage() {
@@ -87,7 +91,11 @@ export default function PollDetailsPage() {
         </Link>
       </div>
 
-      <div className="photo-placeholder large">Место для фотографии / баннера опроса</div>
+      {hasCoverImage(poll) ? (
+        <img className="poll-cover-image poll-cover-image-large" src={getAttachmentPreviewUrl(poll.attachmentId)} alt={poll.title} />
+      ) : (
+        <div className="photo-placeholder large">Место для фотографии / баннера опроса</div>
+      )}
 
       <p>{poll.description || 'Описание отсутствует'}</p>
       <p className="muted">Файл: {poll.attachmentName || poll.attachmentId || 'не прикреплён'}</p>

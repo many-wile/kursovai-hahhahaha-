@@ -1,4 +1,4 @@
-import { request } from './client.js'
+﻿import { request } from './client.js'
 import { ENDPOINTS } from './endpoints.js'
 import { ApiError } from '../lib/apiError.js'
 
@@ -69,13 +69,17 @@ function rememberLocalDelete(id) {
 }
 
 function normalizePoll(raw) {
+  const resolvedId = raw?.id ?? raw?.pollId ?? raw?.Id ?? ''
+  const imagePath = raw?.imagePath ?? raw?.ImagePath ?? ''
+
   return {
-    id: raw?.id ?? raw?.pollId ?? raw?.Id ?? '',
+    id: resolvedId,
     title: raw?.title ?? raw?.name ?? raw?.question ?? 'Без названия',
     description: raw?.description ?? raw?.desc ?? raw?.text ?? '',
-    attachmentId: raw?.attachmentId ?? raw?.fileId ?? null,
-    attachmentName: raw?.attachmentName ?? raw?.fileName ?? '',
+    attachmentId: raw?.attachmentId ?? raw?.fileId ?? (imagePath ? resolvedId : null),
+    attachmentName: raw?.attachmentName ?? raw?.fileName ?? imagePath ?? '',
     createdAt: raw?.createdAt ?? raw?.created ?? null,
+    imagePath,
   }
 }
 
@@ -154,7 +158,10 @@ export async function getPollById(id) {
 export async function createPoll(data) {
   const payload = await request(ENDPOINTS.polls, {
     method: 'POST',
-    body: data,
+    body: {
+      title: data?.title ?? '',
+      description: data?.description ?? '',
+    },
   })
 
   return normalizePoll(payload)
@@ -164,7 +171,12 @@ export async function updatePoll(id, data) {
   try {
     const payload = await request(ENDPOINTS.pollById(id), {
       method: 'PUT',
-      body: data,
+      body: {
+        id: Number(id),
+        title: data?.title ?? '',
+        description: data?.description ?? '',
+        imagePath: data?.imagePath ?? null,
+      },
     })
 
     return normalizePoll(payload)
@@ -199,4 +211,3 @@ export async function deletePoll(id) {
     rememberLocalDelete(id)
   }
 }
-

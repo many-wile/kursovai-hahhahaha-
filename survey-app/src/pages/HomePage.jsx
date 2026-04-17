@@ -1,8 +1,8 @@
 ﻿import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getPolls } from '../api/polls.js'
+import { getAttachmentPreviewUrl, isImageAttachment } from '../api/files.js'
 import { toUserMessage } from '../lib/apiError.js'
-
 
 function SearchIcon() {
   return (
@@ -15,6 +15,10 @@ function SearchIcon() {
       />
     </svg>
   )
+}
+
+function hasCoverImage(poll) {
+  return Boolean(poll?.attachmentId && isImageAttachment(poll.attachmentName || poll.imagePath))
 }
 
 export default function HomePage() {
@@ -74,7 +78,12 @@ export default function HomePage() {
         <div className="poll-vertical-list">
           {items.map((poll) => (
             <article key={poll.id} className="vertical-card">
-              <div className="photo-placeholder">Место для фото опроса</div>
+              {hasCoverImage(poll) ? (
+                <img className="poll-cover-image" src={getAttachmentPreviewUrl(poll.attachmentId)} alt={poll.title} loading="lazy" />
+              ) : (
+                <div className="photo-placeholder">Место для фото опроса</div>
+              )}
+
               <h3>{poll.title}</h3>
               <p>{poll.description || 'Описание появится позже'}</p>
               <div className="inline-links">
