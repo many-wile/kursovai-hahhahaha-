@@ -1,16 +1,60 @@
-# React + Vite
+﻿# Survey Client (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Клиентское приложение для курсовой: многостраничный сайт с авторизацией, CRUD опросов, файлами, уведомлениями и мок-API.
 
-Currently, two official plugins are available:
+## Что реализовано
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Многостраничный web-клиент (`/`, `/login`, `/register`, `/polls`, `/polls/:id`, `/polls/new`, `/polls/:id/edit`, `/polls/:id/stats`, `/profile`).
+- Авторизация: логин/регистрация/выход.
+- Хранение `accessToken` + `refreshToken` в `localStorage`.
+- Автообновление access-токена при `401` через refresh endpoint.
+- CRUD опросов + пагинация + поиск.
+- Работа с файлами: загрузка, отображение в UI, скачивание.
+- Обработка ошибок: `401`, `404`, сетевые ошибки + toast-уведомления.
+- Асинхронные состояния: загрузка и блокировки кнопок.
+- Плейсхолдеры-прямоугольники под фото/графики по макету.
 
-## React Compiler
+## Быстрый старт
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+## Режим без backend (по умолчанию)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Проект уже работает без сервера, потому что включен mock API.
+
+```env
+VITE_USE_MOCK_API=true
+```
+
+Тестовый аккаунт для входа в mock-режиме:
+
+- `demo@mail.com`
+- `123456`
+
+## Переключение на реальный backend
+
+Когда сервер будет готов, просто выключи mock-режим:
+
+```env
+VITE_USE_MOCK_API=false
+VITE_API_BASE_URL=http://localhost:5000/api
+
+VITE_AUTH_LOGIN_PATH=/auth/login
+VITE_AUTH_REGISTER_PATH=/auth/register
+VITE_AUTH_REFRESH_PATH=/auth/refresh
+VITE_AUTH_LOGOUT_PATH=/auth/logout
+
+VITE_POLLS_PATH=/polls
+VITE_FILE_UPLOAD_PATH=/files/upload
+VITE_FILE_BASE_PATH=/files
+```
+
+## Проверка качества
+
+```bash
+npm run lint
+npm run build
+```
