@@ -22,4 +22,8 @@
     <ProjectReference Include="..\Survey.Models\Survey.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\" />
+  </ItemGroup>
+
 </Project>
