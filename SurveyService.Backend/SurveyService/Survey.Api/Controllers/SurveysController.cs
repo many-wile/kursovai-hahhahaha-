@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Survey.Data;
+using Microsoft.Extensions.Caching.Memory;
+using Survey.Data.Repositories;
 using Survey.Models;
+using Survey.Models.DTO;
 
 namespace Survey.Api.Controllers;
 
@@ -10,34 +11,37 @@ namespace Survey.Api.Controllers;
 [ApiController]
 public class SurveysController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ISurveyRepository _repository;
+    private readonly IMemoryCache _cache;
     private readonly IWebHostEnvironment _env;
 
-    public SurveysController(AppDbContext context, IWebHostEnvironment env)
+    public SurveysController(ISurveyRepository repository, IMemoryCache cache, IWebHostEnvironment env)
     {
-        _context = context;
+        _repository = repository;
+        _cache = cache;
         _env = env;
     }
 
     [HttpGet]
-    public async Task<ActionResult<object>> GetSurveys()
+    public async Task<ActionResult<PagedResult<SurveyItem>>> GetSurveys(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string query = "")
     {
-        var surveys = await _context.Surveys.Include(s => s.Questions).ToListAsync();
-        return Ok(new
+        var cacheKey = $"surveys_p{page}_s{pageSize}_q{query}";
+
+        if (!_cache.TryGetValue(cacheKey, out PagedResult<SurveyItem> result))
         {
-            items = surveys,
-            totalCount = surveys.Count,
-            page = 1,
-            pageSize = 10
-        });
+            result = await _repository.GetPagedAsync(page, pageSize, query);
+            var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
+            _cache.Set(cacheKey, result, cacheOptions);
+        }
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<SurveyItem>> GetSurvey(int id)
     {
-        var survey = await _context.Surveys.Include(s => s.Questions)
-            .FirstOrDefaultAsync(s => s.Id == id);
-
+        var survey = await _repository.GetByIdAsync(id);
         if (survey == null) return NotFound();
         return survey;
     }
@@ -46,9 +50,8 @@ public class SurveysController : ControllerBase
     [Authorize]
     public async Task<ActionResult<SurveyItem>> CreateSurvey(SurveyItem item)
     {
-        _context.Surveys.Add(item);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetSurveys), new { id = item.Id }, item);
+        var created = await _repository.CreateAsync(item);
+        return CreatedAtAction(nameof(GetSurvey), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
@@ -56,19 +59,8 @@ public class SurveysController : ControllerBase
     public async Task<IActionResult> UpdateSurvey(int id, SurveyItem item)
     {
         if (id != item.Id) return BadRequest();
-        
-        var existing = await _context.Surveys.FindAsync(id);
-        if (existing == null) return NotFound();
-
-        existing.Title = item.Title;
-        existing.Description = item.Description;
-        if (!string.IsNullOrWhiteSpace(item.ImagePath))
-        {
-            existing.ImagePath = item.ImagePath;
-        }
-
-        await _context.SaveChangesAsync();
-
+        var updated = await _repository.UpdateAsync(id, item);
+        if (updated == null) return NotFound();
         return NoContent();
     }
 
@@ -76,11 +68,7 @@ public class SurveysController : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteSurvey(int id)
     {
-        var survey = await _context.Surveys.FindAsync(id);
-        if (survey == null) return NotFound();
-
-        _context.Surveys.Remove(survey);
-        await _context.SaveChangesAsync();
+        await _repository.DeleteAsync(id);
         return NoContent();
     }
 
@@ -88,19 +76,18 @@ public class SurveysController : ControllerBase
     [Authorize]
     public async Task<IActionResult> UploadImage(int id, IFormFile file)
     {
-        var survey = await _context.Surveys.FindAsync(id);
+        var survey = await _repository.GetByIdAsync(id);
         if (survey == null) return NotFound();
 
-        if (file == null || file.Length == 0) return BadRequest();
+        if (file == null || file.Length == 0) return BadRequest("Файл не выбран.");
+        if (file.Length > 2 * 1024 * 1024) return BadRequest("Файл слишком большой (макс 2MB).");
 
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-        var extension = Path.GetExtension(file.FileName).ToLower();
-        if (!allowedExtensions.Contains(extension)) return BadRequest();
-
-        if (file.Length > 2 * 1024 * 1024) return BadRequest();
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension)) return BadRequest("Неверный формат файла (разрешены .jpg, .png).");
 
         string fileName = $"survey_{id}{extension}";
-        string path = Path.Combine(_env.WebRootPath, "uploads", fileName);
+        string path = Path.Combine(_env.WebRootPath!, "uploads", fileName);
 
         using (var stream = new FileStream(path, FileMode.Create))
         {
@@ -108,35 +95,23 @@ public class SurveysController : ControllerBase
         }
 
         survey.ImagePath = fileName;
-        await _context.SaveChangesAsync();
+        await _repository.UpdateAsync(id, survey);
 
         return Ok(new { fileName });
     }
 
     [HttpGet("{id}/image")]
-    public IActionResult GetImage(int id)
+    public async Task<IActionResult> GetImage(int id)
     {
-        var extensions = new[] { ".jpg", ".jpeg", ".png" };
-        string filePath = "";
-        string fileName = "";
+        var survey = await _repository.GetByIdAsync(id);
+        if (survey == null || string.IsNullOrWhiteSpace(survey.ImagePath)) return NotFound();
 
-        foreach (var ext in extensions)
-        {
-            var path = Path.Combine(_env.WebRootPath, "uploads", $"survey_{id}{ext}");
-            if (System.IO.File.Exists(path))
-            {
-                filePath = path;
-                fileName = $"survey_{id}{ext}";
-                break;
-            }
-        }
+        var path = Path.Combine(_env.WebRootPath!, "uploads", survey.ImagePath);
+        if (!System.IO.File.Exists(path)) return NotFound();
 
-        if (string.IsNullOrEmpty(filePath)) return NotFound();
+        var fileBytes = await System.IO.File.ReadAllBytesAsync(path);
+        var mimeType = survey.ImagePath.EndsWith(".png") ? "image/png" : "image/jpeg";
 
-        var fileBytes = System.IO.File.ReadAllBytes(filePath);
-        Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
-        Response.Headers.Pragma = "no-cache";
-        Response.Headers.Expires = "0";
-        return File(fileBytes, "image/jpeg", fileName);
+        return File(fileBytes, mimeType, survey.ImagePath);
     }
 }
