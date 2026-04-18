@@ -312,7 +312,17 @@ export default function PollEditorPage({ mode }) {
   }
 
   const onSubmit = async (event) => {
-    event.preventDefault()
+      event.preventDefault()
+      if (title.trim().length < 5) {
+          pushToast('warning', 'Название опроса должно быть не короче 5 символов')
+          setBusy(false)
+          return
+      }
+      if (description.trim().length === 0) {
+          pushToast('warning', 'Пожалуйста, заполните описание опроса')
+          setBusy(false)
+          return
+      }
     setBusy(true)
     setError('')
 
