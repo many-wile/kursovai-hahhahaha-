@@ -83,6 +83,9 @@ async function executeHttp(path, { method, headers, body, expect, signal }) {
     signal,
   })
 
+    console.log(`%c[API Request] ${method} ${path}`, 'color: #gold; font-weight: bold');
+    console.log(`[Response Status] ${response.status}`);
+
   if (!response.ok) {
     const payload = await parseResponseBody(response)
     const message = inferMessage(response.status, getErrorMessage(payload))
