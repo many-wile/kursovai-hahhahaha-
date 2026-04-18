@@ -11,13 +11,13 @@ namespace Survey.Api.Controllers;
 [ApiController]
 public class SurveysController : ControllerBase
 {
-    private readonly ISurveyRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMemoryCache _cache;
     private readonly IWebHostEnvironment _env;
 
-    public SurveysController(ISurveyRepository repository, IMemoryCache cache, IWebHostEnvironment env)
+    public SurveysController(IUnitOfWork unitOfWork, IMemoryCache cache, IWebHostEnvironment env)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
         _cache = cache;
         _env = env;
     }
@@ -30,7 +30,7 @@ public class SurveysController : ControllerBase
 
         if (!_cache.TryGetValue(cacheKey, out PagedResult<SurveyItem> result))
         {
-            result = await _repository.GetPagedAsync(page, pageSize, query);
+            result = await _unitOfWork.Surveys.GetPagedAsync(page, pageSize, query);
             var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
             _cache.Set(cacheKey, result, cacheOptions);
         }
@@ -41,7 +41,7 @@ public class SurveysController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<SurveyItem>> GetSurvey(int id)
     {
-        var survey = await _repository.GetByIdAsync(id);
+        var survey = await _unitOfWork.Surveys.GetByIdAsync(id);
         if (survey == null) return NotFound();
         return survey;
     }
@@ -50,7 +50,8 @@ public class SurveysController : ControllerBase
     [Authorize]
     public async Task<ActionResult<SurveyItem>> CreateSurvey(SurveyItem item)
     {
-        var created = await _repository.CreateAsync(item);
+        var created = await _unitOfWork.Surveys.CreateAsync(item);
+        await _unitOfWork.CompleteAsync();
         return CreatedAtAction(nameof(GetSurvey), new { id = created.Id }, created);
     }
 
@@ -59,8 +60,9 @@ public class SurveysController : ControllerBase
     public async Task<IActionResult> UpdateSurvey(int id, SurveyItem item)
     {
         if (id != item.Id) return BadRequest();
-        var updated = await _repository.UpdateAsync(id, item);
+        var updated = await _unitOfWork.Surveys.UpdateAsync(id, item);
         if (updated == null) return NotFound();
+        await _unitOfWork.CompleteAsync();
         return NoContent();
     }
 
@@ -68,7 +70,8 @@ public class SurveysController : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteSurvey(int id)
     {
-        await _repository.DeleteAsync(id);
+        await _unitOfWork.Surveys.DeleteAsync(id);
+        await _unitOfWork.CompleteAsync();
         return NoContent();
     }
 
@@ -76,15 +79,15 @@ public class SurveysController : ControllerBase
     [Authorize]
     public async Task<IActionResult> UploadImage(int id, IFormFile file)
     {
-        var survey = await _repository.GetByIdAsync(id);
+        var survey = await _unitOfWork.Surveys.GetByIdAsync(id);
         if (survey == null) return NotFound();
 
         if (file == null || file.Length == 0) return BadRequest("Файл не выбран.");
-        if (file.Length > 2 * 1024 * 1024) return BadRequest("Файл слишком большой (макс 2MB).");
+        if (file.Length > 2 * 1024 * 1024) return BadRequest("Файл слишком большой.");
 
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!allowedExtensions.Contains(extension)) return BadRequest("Неверный формат файла (разрешены .jpg, .png).");
+        if (!allowedExtensions.Contains(extension)) return BadRequest("Неверный формат.");
 
         string fileName = $"survey_{id}{extension}";
         string path = Path.Combine(_env.WebRootPath!, "uploads", fileName);
@@ -95,7 +98,8 @@ public class SurveysController : ControllerBase
         }
 
         survey.ImagePath = fileName;
-        await _repository.UpdateAsync(id, survey);
+        await _unitOfWork.Surveys.UpdateAsync(id, survey);
+        await _unitOfWork.CompleteAsync();
 
         return Ok(new { fileName });
     }
@@ -103,7 +107,7 @@ public class SurveysController : ControllerBase
     [HttpGet("{id}/image")]
     public async Task<IActionResult> GetImage(int id)
     {
-        var survey = await _repository.GetByIdAsync(id);
+        var survey = await _unitOfWork.Surveys.GetByIdAsync(id);
         if (survey == null || string.IsNullOrWhiteSpace(survey.ImagePath)) return NotFound();
 
         var path = Path.Combine(_env.WebRootPath!, "uploads", survey.ImagePath);
