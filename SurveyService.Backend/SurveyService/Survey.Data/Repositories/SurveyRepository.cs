@@ -17,7 +17,6 @@ public class SurveyRepository : ISurveyRepository
     {
         var dbQuery = _context.Surveys.Include(s => s.Questions).AsQueryable();
 
-        // ФИЛЬТРАЦИЯ
         if (!string.IsNullOrWhiteSpace(query))
         {
             dbQuery = dbQuery.Where(s => s.Title.ToLower().Contains(query.ToLower()));
@@ -25,7 +24,6 @@ public class SurveyRepository : ISurveyRepository
 
         var totalCount = await dbQuery.CountAsync();
 
-        // ПАГИНАЦИЯ
         var items = await dbQuery
             .OrderByDescending(s => s.CreatedAt)
             .Skip((page - 1) * pageSize)

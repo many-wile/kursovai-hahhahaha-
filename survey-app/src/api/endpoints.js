@@ -1,5 +1,4 @@
-﻿// ПОЛНЫЙ ФАЙЛ ПОСЛЕ ИЗМЕНЕНИЙ:
-const env = import.meta.env
+﻿const env = import.meta.env
 
 export const API_BASE_URL = 'https://localhost:7054/api'
 

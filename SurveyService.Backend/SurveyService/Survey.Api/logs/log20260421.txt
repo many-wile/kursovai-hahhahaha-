@@ -1,0 +1,281 @@
+2026-04-21 13:46:20.941 +03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+2026-04-21 13:46:20.979 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+2026-04-21 13:46:20.992 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-04-21 13:46:21.005 +03:00 [INF] No migrations were applied. The database is already up to date.
+2026-04-21 13:46:21.145 +03:00 [INF] User profile is available. Using 'C:\Users\USR\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-04-21 13:46:21.361 +03:00 [INF] Now listening on: https://localhost:7054
+2026-04-21 13:46:21.362 +03:00 [INF] Now listening on: http://localhost:5242
+2026-04-21 13:46:21.503 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-04-21 13:46:21.503 +03:00 [INF] Hosting environment: Development
+2026-04-21 13:46:21.504 +03:00 [INF] Content root path: C:\Users\USR\Desktop\Сoursework\kursovai-hahhahaha-\SurveyService.Backend\SurveyService\Survey.Api
+2026-04-21 13:46:22.062 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/swagger/index.html - null null
+2026-04-21 13:46:22.209 +03:00 [INF] HTTP GET /swagger/index.html responded 200 in 45.8579 ms
+2026-04-21 13:46:22.213 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/swagger/index.html - 200 null text/html;charset=utf-8 156.5188ms
+2026-04-21 13:46:22.349 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/_framework/aspnetcore-browser-refresh.js - null null
+2026-04-21 13:46:22.349 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/_vs/browserLink - null null
+2026-04-21 13:46:22.353 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/_framework/aspnetcore-browser-refresh.js - 200 16471 application/javascript; charset=utf-8 4.3676ms
+2026-04-21 13:46:22.378 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/_vs/browserLink - 200 null text/javascript; charset=UTF-8 29.3067ms
+2026-04-21 13:46:22.412 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/swagger/v1/swagger.json - null null
+2026-04-21 13:46:22.425 +03:00 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 11.7873 ms
+2026-04-21 13:46:22.428 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 16.4595ms
+2026-04-21 13:46:31.517 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:31.517 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:31.520 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:31.520 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:31.521 +03:00 [INF] HTTP OPTIONS /api/Surveys responded 204 in 2.6680 ms
+2026-04-21 13:46:31.521 +03:00 [INF] HTTP OPTIONS /api/Surveys responded 204 in 1.5415 ms
+2026-04-21 13:46:31.522 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=3 - 204 null null 5.2042ms
+2026-04-21 13:46:31.523 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=3 - 204 null null 6.0069ms
+2026-04-21 13:46:31.523 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:31.527 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:31.638 +03:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:31'.
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-04-21 13:46:31.661 +03:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:31'.
+2026-04-21 13:46:31.664 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:31.680 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:31.830 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM "Surveys" AS "s"
+2026-04-21 13:46:31.904 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__p_1='?' (DbType = Int32), @__p_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "t"."Id", "t"."CreatedAt", "t"."Description", "t"."ImagePath", "t"."Title", "q"."Id", "q"."SurveyItemId", "q"."Text"
+FROM (
+    SELECT "s"."Id", "s"."CreatedAt", "s"."Description", "s"."ImagePath", "s"."Title"
+    FROM "Surveys" AS "s"
+    ORDER BY "s"."CreatedAt" DESC
+    LIMIT @__p_1 OFFSET @__p_0
+) AS "t"
+LEFT JOIN "Questions" AS "q" ON "t"."Id" = "q"."SurveyItemId"
+ORDER BY "t"."CreatedAt" DESC, "t"."Id"
+2026-04-21 13:46:31.936 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:31.945 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:31.946 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 263.3167ms
+2026-04-21 13:46:31.946 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:31.947 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:31.948 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 421.0467 ms
+2026-04-21 13:46:31.974 +03:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:31'.
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-04-21 13:46:31.975 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - 200 null application/json; charset=utf-8 451.7798ms
+2026-04-21 13:46:31.976 +03:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:31'.
+2026-04-21 13:46:31.978 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:31.979 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:31.981 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:31.982 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 1.8515ms
+2026-04-21 13:46:31.982 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:31.983 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 36.9410 ms
+2026-04-21 13:46:31.984 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - 200 null application/json; charset=utf-8 39.4934ms
+2026-04-21 13:46:32.144 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys/1/image?v=survey_1.jpg-1776617272920 - null null
+2026-04-21 13:46:32.148 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetImage (Survey.Api)'
+2026-04-21 13:46:32.151 +03:00 [INF] Route matched with {action = "GetImage", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetImage(Int32) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:32.198 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "t"."Id", "t"."CreatedAt", "t"."Description", "t"."ImagePath", "t"."Title", "q"."Id", "q"."SurveyItemId", "q"."Text"
+FROM (
+    SELECT "s"."Id", "s"."CreatedAt", "s"."Description", "s"."ImagePath", "s"."Title"
+    FROM "Surveys" AS "s"
+    WHERE "s"."Id" = @__id_0
+    LIMIT 1
+) AS "t"
+LEFT JOIN "Questions" AS "q" ON "t"."Id" = "q"."SurveyItemId"
+ORDER BY "t"."Id"
+2026-04-21 13:46:32.203 +03:00 [INF] Executing FileContentResult, sending file with download name 'survey_1.jpg' ...
+2026-04-21 13:46:32.211 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetImage (Survey.Api) in 58.7463ms
+2026-04-21 13:46:32.212 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetImage (Survey.Api)'
+2026-04-21 13:46:32.214 +03:00 [INF] HTTP GET /api/Surveys/1/image responded 200 in 67.4806 ms
+2026-04-21 13:46:32.215 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys/1/image?v=survey_1.jpg-1776617272920 - 200 114557 image/jpeg 70.6157ms
+2026-04-21 13:46:35.927 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:35.929 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:35.955 +03:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:35'.
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-04-21 13:46:35.957 +03:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:35'.
+2026-04-21 13:46:35.957 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:35.958 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:35.959 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:35.960 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 1.3487ms
+2026-04-21 13:46:35.961 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:35.961 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:35.961 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 31.9680 ms
+2026-04-21 13:46:35.962 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:35.963 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - 200 null application/json; charset=utf-8 35.5582ms
+2026-04-21 13:46:35.985 +03:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:35'.
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-04-21 13:46:35.989 +03:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:35'.
+2026-04-21 13:46:35.989 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:35.990 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:35.991 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:35.992 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 1.1592ms
+2026-04-21 13:46:35.992 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:35.993 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 30.7390 ms
+2026-04-21 13:46:35.994 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - 200 null application/json; charset=utf-8 32.8533ms
+2026-04-21 13:46:37.172 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/auth/logout - null null
+2026-04-21 13:46:37.174 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:37.174 +03:00 [INF] HTTP OPTIONS /api/auth/logout responded 204 in 0.5911 ms
+2026-04-21 13:46:37.175 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/auth/logout - 204 null null 3.0085ms
+2026-04-21 13:46:37.176 +03:00 [INF] Request starting HTTP/2 POST https://localhost:7054/api/auth/logout - application/json 2
+2026-04-21 13:46:37.177 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:37.199 +03:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:37'.
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-04-21 13:46:37.201 +03:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '20.04.2026 16:47:38', Current time (UTC): '21.04.2026 10:46:37'.
+2026-04-21 13:46:37.202 +03:00 [INF] HTTP POST /api/auth/logout responded 404 in 24.3153 ms
+2026-04-21 13:46:37.202 +03:00 [INF] Request finished HTTP/2 POST https://localhost:7054/api/auth/logout - 404 0 null 26.6187ms
+2026-04-21 13:46:37.204 +03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: POST https://localhost:7054/api/auth/logout, Response status code: 404
+2026-04-21 13:46:38.400 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/auth/login - null null
+2026-04-21 13:46:38.402 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:38.402 +03:00 [INF] HTTP OPTIONS /api/auth/login responded 204 in 0.4056 ms
+2026-04-21 13:46:38.403 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/auth/login - 204 null null 2.661ms
+2026-04-21 13:46:38.404 +03:00 [INF] Request starting HTTP/2 POST https://localhost:7054/api/auth/login - application/json 57
+2026-04-21 13:46:38.405 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:38.406 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.AuthController.Login (Survey.Api)'
+2026-04-21 13:46:38.409 +03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Login(Survey.Models.DTO.UserLoginDto) on controller Survey.Api.Controllers.AuthController (Survey.Api).
+2026-04-21 13:46:38.428 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__req_Email_0='?' (Size = 25)], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."Email", "u"."FullName", "u"."PasswordHash", "u"."Role"
+FROM "Users" AS "u"
+WHERE "u"."Email" = @__req_Email_0
+LIMIT 1
+2026-04-21 13:46:38.784 +03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType0`2[[Survey.Models.User, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-21 13:46:38.787 +03:00 [INF] Executed action Survey.Api.Controllers.AuthController.Login (Survey.Api) in 377.908ms
+2026-04-21 13:46:38.788 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.AuthController.Login (Survey.Api)'
+2026-04-21 13:46:38.789 +03:00 [INF] HTTP POST /api/auth/login responded 200 in 383.4199 ms
+2026-04-21 13:46:38.791 +03:00 [INF] Request finished HTTP/2 POST https://localhost:7054/api/auth/login - 200 null application/json; charset=utf-8 387.3067ms
+2026-04-21 13:46:38.799 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=6 - null null
+2026-04-21 13:46:38.799 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=6 - null null
+2026-04-21 13:46:38.801 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:38.802 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:38.803 +03:00 [INF] HTTP OPTIONS /api/Surveys responded 204 in 1.5224 ms
+2026-04-21 13:46:38.803 +03:00 [INF] HTTP OPTIONS /api/Surveys responded 204 in 0.7178 ms
+2026-04-21 13:46:38.804 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=6 - 204 null null 5.1759ms
+2026-04-21 13:46:38.805 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=6 - 204 null null 5.9416ms
+2026-04-21 13:46:38.806 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=6 - null null
+2026-04-21 13:46:38.809 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:38.816 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:38.817 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:38.820 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM "Surveys" AS "s"
+2026-04-21 13:46:38.821 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__p_1='?' (DbType = Int32), @__p_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "t"."Id", "t"."CreatedAt", "t"."Description", "t"."ImagePath", "t"."Title", "q"."Id", "q"."SurveyItemId", "q"."Text"
+FROM (
+    SELECT "s"."Id", "s"."CreatedAt", "s"."Description", "s"."ImagePath", "s"."Title"
+    FROM "Surveys" AS "s"
+    ORDER BY "s"."CreatedAt" DESC
+    LIMIT @__p_1 OFFSET @__p_0
+) AS "t"
+LEFT JOIN "Questions" AS "q" ON "t"."Id" = "q"."SurveyItemId"
+ORDER BY "t"."CreatedAt" DESC, "t"."Id"
+2026-04-21 13:46:38.823 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:38.824 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 5.9974ms
+2026-04-21 13:46:38.824 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:38.825 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=6 - null null
+2026-04-21 13:46:38.825 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 15.7471 ms
+2026-04-21 13:46:38.826 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:38.827 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=6 - 200 null application/json; charset=utf-8 21.0876ms
+2026-04-21 13:46:38.828 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:38.830 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:38.831 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:38.832 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 1.2163ms
+2026-04-21 13:46:38.833 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys/1/image?v=survey_1.jpg-1776617272920 - null null
+2026-04-21 13:46:38.833 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:38.835 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 8.7933 ms
+2026-04-21 13:46:38.835 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetImage (Survey.Api)'
+2026-04-21 13:46:38.836 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=6 - 200 null application/json; charset=utf-8 11.0376ms
+2026-04-21 13:46:38.836 +03:00 [INF] Route matched with {action = "GetImage", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetImage(Int32) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:38.840 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "t"."Id", "t"."CreatedAt", "t"."Description", "t"."ImagePath", "t"."Title", "q"."Id", "q"."SurveyItemId", "q"."Text"
+FROM (
+    SELECT "s"."Id", "s"."CreatedAt", "s"."Description", "s"."ImagePath", "s"."Title"
+    FROM "Surveys" AS "s"
+    WHERE "s"."Id" = @__id_0
+    LIMIT 1
+) AS "t"
+LEFT JOIN "Questions" AS "q" ON "t"."Id" = "q"."SurveyItemId"
+ORDER BY "t"."Id"
+2026-04-21 13:46:38.845 +03:00 [INF] Executing FileContentResult, sending file with download name 'survey_1.jpg' ...
+2026-04-21 13:46:38.848 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetImage (Survey.Api) in 8.2325ms
+2026-04-21 13:46:38.848 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetImage (Survey.Api)'
+2026-04-21 13:46:38.849 +03:00 [INF] HTTP GET /api/Surveys/1/image responded 200 in 13.7012 ms
+2026-04-21 13:46:38.849 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys/1/image?v=survey_1.jpg-1776617272920 - 200 114557 image/jpeg 16.8917ms
+2026-04-21 13:46:42.170 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:42.170 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:42.172 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:42.173 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:42.174 +03:00 [INF] HTTP OPTIONS /api/Surveys responded 204 in 2.1732 ms
+2026-04-21 13:46:42.174 +03:00 [INF] HTTP OPTIONS /api/Surveys responded 204 in 0.8473 ms
+2026-04-21 13:46:42.175 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=3 - 204 null null 5.3607ms
+2026-04-21 13:46:42.176 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=3 - 204 null null 6.14ms
+2026-04-21 13:46:42.177 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:42.180 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:42.181 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:42.181 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:42.183 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:42.183 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 1.1594ms
+2026-04-21 13:46:42.184 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:42.184 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - null null
+2026-04-21 13:46:42.185 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 4.3793 ms
+2026-04-21 13:46:42.186 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:42.187 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - 200 null application/json; charset=utf-8 10.3123ms
+2026-04-21 13:46:42.188 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:42.189 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:42.191 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:42.192 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 1.1316ms
+2026-04-21 13:46:42.192 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:42.193 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 7.4909 ms
+2026-04-21 13:46:42.194 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=3 - 200 null application/json; charset=utf-8 10.1063ms
+2026-04-21 13:46:46.696 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=6&query=%D0%B0%D1%8B - null null
+2026-04-21 13:46:46.696 +03:00 [INF] Request starting HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=6&query=%D0%B0%D1%8B - null null
+2026-04-21 13:46:46.698 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:46.699 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:46.700 +03:00 [INF] HTTP OPTIONS /api/Surveys responded 204 in 1.8129 ms
+2026-04-21 13:46:46.700 +03:00 [INF] HTTP OPTIONS /api/Surveys responded 204 in 1.0830 ms
+2026-04-21 13:46:46.701 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=6&query=%D0%B0%D1%8B - 204 null null 5.4004ms
+2026-04-21 13:46:46.702 +03:00 [INF] Request finished HTTP/2 OPTIONS https://localhost:7054/api/Surveys?page=1&pageSize=6&query=%D0%B0%D1%8B - 204 null null 5.776ms
+2026-04-21 13:46:46.702 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=6&query=%D0%B0%D1%8B - null null
+2026-04-21 13:46:46.706 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:46.707 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:46.708 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:46.720 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__ToLower_0='?' (Size = 2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM "Surveys" AS "s"
+WHERE instr(lower("s"."Title"), @__ToLower_0) > 0
+2026-04-21 13:46:46.726 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__ToLower_0='?' (Size = 2), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "t"."Id", "t"."CreatedAt", "t"."Description", "t"."ImagePath", "t"."Title", "q"."Id", "q"."SurveyItemId", "q"."Text"
+FROM (
+    SELECT "s"."Id", "s"."CreatedAt", "s"."Description", "s"."ImagePath", "s"."Title"
+    FROM "Surveys" AS "s"
+    WHERE instr(lower("s"."Title"), @__ToLower_0) > 0
+    ORDER BY "s"."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS "t"
+LEFT JOIN "Questions" AS "q" ON "t"."Id" = "q"."SurveyItemId"
+ORDER BY "t"."CreatedAt" DESC, "t"."Id"
+2026-04-21 13:46:46.728 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:46.729 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 20.0577ms
+2026-04-21 13:46:46.729 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:46.729 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=6&query=%D0%B0%D1%8B - null null
+2026-04-21 13:46:46.730 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 23.5494 ms
+2026-04-21 13:46:46.731 +03:00 [INF] CORS policy execution successful.
+2026-04-21 13:46:46.732 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=6&query=%D0%B0%D1%8B - 200 null application/json; charset=utf-8 29.4605ms
+2026-04-21 13:46:46.732 +03:00 [INF] Executing endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:46.734 +03:00 [INF] Route matched with {action = "GetSurveys", controller = "Surveys"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Survey.Models.DTO.PagedResult`1[Survey.Models.SurveyItem]]] GetSurveys(Int32, Int32, System.String) on controller Survey.Api.Controllers.SurveysController (Survey.Api).
+2026-04-21 13:46:46.736 +03:00 [INF] Executing OkObjectResult, writing value of type 'Survey.Models.DTO.PagedResult`1[[Survey.Models.SurveyItem, Survey.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 13:46:46.738 +03:00 [INF] Executed action Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api) in 1.7112ms
+2026-04-21 13:46:46.738 +03:00 [INF] Executed endpoint 'Survey.Api.Controllers.SurveysController.GetSurveys (Survey.Api)'
+2026-04-21 13:46:46.739 +03:00 [INF] HTTP GET /api/Surveys responded 200 in 7.8410 ms
+2026-04-21 13:46:46.740 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7054/api/Surveys?page=1&pageSize=6&query=%D0%B0%D1%8B - 200 null application/json; charset=utf-8 10.6451ms

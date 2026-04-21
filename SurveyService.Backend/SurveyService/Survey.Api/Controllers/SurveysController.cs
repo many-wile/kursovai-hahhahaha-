@@ -28,7 +28,7 @@ public class SurveysController : ControllerBase
     {
         var cacheKey = $"surveys_p{page}_s{pageSize}_q{query}";
 
-        if (!_cache.TryGetValue(cacheKey, out PagedResult<SurveyItem> result))
+        if (!_cache.TryGetValue(cacheKey, out PagedResult<SurveyItem>? result))
         {
             result = await _unitOfWork.Surveys.GetPagedAsync(page, pageSize, query);
             var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
@@ -45,7 +45,6 @@ public class SurveysController : ControllerBase
         if (survey == null) return NotFound();
         return survey;
     }
-
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<SurveyItem>> CreateSurvey(SurveyItem item)
@@ -73,5 +72,50 @@ public class SurveysController : ControllerBase
         await _unitOfWork.Surveys.DeleteAsync(id);
         await _unitOfWork.CompleteAsync();
         return NoContent();
+    }
+
+    [HttpPost("{id}/upload-image")]
+    [Authorize]
+    public async Task<IActionResult> UploadImage(int id, IFormFile file)
+    {
+        var survey = await _unitOfWork.Surveys.GetByIdAsync(id);
+        if (survey == null) return NotFound();
+
+        if (file == null || file.Length == 0) return BadRequest("Файл не выбран.");
+        if (file.Length > 2 * 1024 * 1024) return BadRequest("Файл слишком большой.");
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension)) return BadRequest("Неверный формат.");
+
+        string fileName = $"survey_{id}{extension}";
+        string path = Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads", fileName);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        using (var stream = new FileStream(path, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        survey.ImagePath = fileName;
+        await _unitOfWork.Surveys.UpdateAsync(id, survey);
+        await _unitOfWork.CompleteAsync();
+
+        return Ok(new { fileName });
+    }
+
+    [HttpGet("{id}/image")]
+    public async Task<IActionResult> GetImage(int id)
+    {
+        var survey = await _unitOfWork.Surveys.GetByIdAsync(id);
+        if (survey == null || string.IsNullOrWhiteSpace(survey.ImagePath)) return NotFound();
+
+        var path = Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads", survey.ImagePath);
+        if (!System.IO.File.Exists(path)) return NotFound();
+
+        var fileBytes = await System.IO.File.ReadAllBytesAsync(path);
+        var mimeType = survey.ImagePath.EndsWith(".png") ? "image/png" : "image/jpeg";
+
+        return File(fileBytes, mimeType, survey.ImagePath);
     }
 }

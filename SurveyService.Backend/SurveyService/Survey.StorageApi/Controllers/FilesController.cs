@@ -19,16 +19,34 @@ public class FilesController : ControllerBase
     [HttpPost("{id}/upload")]
     public async Task<IActionResult> Upload(int id, IFormFile file)
     {
-        var survey = await _uow.Surveys.GetByIdAsync(id);
-        if (survey == null || file == null) return NotFound();
-        string fileName = $"survey_{id}{Path.GetExtension(file.FileName)}";
-        string path = Path.Combine(_env.ContentRootPath, "wwwroot/uploads", fileName);
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        using (var s = new FileStream(path, FileMode.Create)) await file.CopyToAsync(s);
-        survey.ImagePath = fileName;
-        await _uow.Surveys.UpdateAsync(id, survey);
-        await _uow.CompleteAsync();
-        return Ok(new { fileName });
+        try
+        {
+            var survey = await _uow.Surveys.GetByIdAsync(id);
+            if (survey == null) return NotFound("Опрос не найден");
+            if (file == null || file.Length == 0) return BadRequest("Файл не выбран");
+
+            string fileName = $"survey_{id}{Path.GetExtension(file.FileName)}";
+
+            string uploadsFolder = Path.Combine(_env.ContentRootPath, "wwwroot", "uploads");
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+            string fullPath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            survey.ImagePath = fileName;
+            await _uow.Surveys.UpdateAsync(id, survey);
+            await _uow.CompleteAsync();
+
+            return Ok(new { fileName });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Ошибка при загрузке: {ex.Message}");
+        }
     }
 
     [HttpGet("{id}/image")]
@@ -36,7 +54,10 @@ public class FilesController : ControllerBase
     {
         var s = await _uow.Surveys.GetByIdAsync(id);
         if (s == null || string.IsNullOrEmpty(s.ImagePath)) return NotFound();
-        var path = Path.Combine(_env.ContentRootPath, "wwwroot/uploads", s.ImagePath);
-        return PhysicalFile(path, "image/jpeg");
+
+        string fullPath = Path.Combine(_env.ContentRootPath, "wwwroot", "uploads", s.ImagePath);
+        if (!System.IO.File.Exists(fullPath)) return NotFound();
+
+        return PhysicalFile(fullPath, "image/jpeg");
     }
 }

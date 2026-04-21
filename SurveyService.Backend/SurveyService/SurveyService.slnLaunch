@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "Новый профиль",
+    "Projects": [
+      {
+        "Path": "Survey.Api\\Survey.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Survey.IdentityApi\\Survey.IdentityApi.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Survey.StorageApi\\Survey.StorageApi.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

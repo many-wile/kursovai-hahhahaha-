@@ -16,8 +16,9 @@ var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=survey.db"));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ISurveyRepository, SurveyRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddCors(o => o.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
