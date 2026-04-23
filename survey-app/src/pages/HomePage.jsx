@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getPolls } from '../api/polls.js'
 import { getAttachmentPreviewUrl, isImageAttachment } from '../api/files.js'
 import { toUserMessage } from '../lib/apiError.js'
+import heroCharacters from '../assets/gariopros.png'
 
 function SearchIcon() {
   return (
@@ -55,6 +56,8 @@ export default function HomePage() {
   return (
     <>
       <section className="hero-box" aria-label="Баннер">
+        <img className="hero-characters" src={heroCharacters} alt="" aria-hidden="true" loading="eager" />
+
         <h1>Опросы на любой вкус и цвет</h1>
 
         <form className="hero-search" onSubmit={onSearch}>
