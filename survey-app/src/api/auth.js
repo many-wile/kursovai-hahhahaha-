@@ -23,18 +23,30 @@ function shouldUseLocalFallback(error) {
   return error instanceof TypeError
 }
 
-function buildLocalSession(data = {}) {
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function buildFallbackUser(data = {}) {
   const email = String(data.email || '').trim()
-  const name = String(data.name || data.userName || '').trim() || email.split('@')[0] || 'Пользователь'
+  const normalizedEmail = normalizeEmail(email)
+  const explicitName = String(data.name || data.userName || '').trim()
+  const fallbackName = normalizedEmail.split('@')[0] || 'User'
+
+  return {
+    id: normalizedEmail || `local_${Date.now()}`,
+    name: explicitName || fallbackName,
+    email,
+  }
+}
+
+function buildLocalSession(data = {}) {
+  const user = buildFallbackUser(data)
 
   return {
     accessToken: `local_${Date.now()}`,
     refreshToken: '',
-    user: {
-      id: 'local_user',
-      name,
-      email,
-    },
+    user,
   }
 }
 
@@ -62,22 +74,19 @@ function extractUser(payload) {
   return payload.user || payload.profile || null
 }
 
-function saveSession(payload) {
+function saveSession(payload, fallbackUser = null) {
   const previousTokens = getStoredTokens()
 
   const accessToken = extractAccessToken(payload)
   const refreshToken = extractRefreshToken(payload) || previousTokens.refreshToken
-  const user = extractUser(payload)
+  const user = extractUser(payload) || fallbackUser
 
   if (!accessToken) {
-    throw new Error('Сервер не вернул токен.')
+    throw new Error('Server did not return access token.')
   }
 
   saveStoredTokens({ accessToken, refreshToken })
-
-  if (user) {
-    saveStoredUser(user)
-  }
+  saveStoredUser(user || null)
 
   return {
     accessToken,
@@ -87,6 +96,8 @@ function saveSession(payload) {
 }
 
 export async function registerUser(data) {
+  const fallbackUser = buildFallbackUser(data)
+
   try {
     const payload = await request(ENDPOINTS.authRegister, {
       method: 'POST',
@@ -94,17 +105,19 @@ export async function registerUser(data) {
       body: data,
     })
 
-    return saveSession(payload)
+    return saveSession(payload, fallbackUser)
   } catch (error) {
     if (!shouldUseLocalFallback(error)) {
       throw error
     }
 
-    return saveSession(buildLocalSession(data))
+    return saveSession(buildLocalSession(data), fallbackUser)
   }
 }
 
 export async function loginUser(data) {
+  const fallbackUser = buildFallbackUser(data)
+
   try {
     const payload = await request(ENDPOINTS.authLogin, {
       method: 'POST',
@@ -112,13 +125,13 @@ export async function loginUser(data) {
       body: data,
     })
 
-    return saveSession(payload)
+    return saveSession(payload, fallbackUser)
   } catch (error) {
     if (!shouldUseLocalFallback(error)) {
       throw error
     }
 
-    return saveSession(buildLocalSession(data))
+    return saveSession(buildLocalSession(data), fallbackUser)
   }
 }
 

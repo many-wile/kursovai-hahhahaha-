@@ -1,60 +1,218 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getPollById } from '../api/polls.js'
-import { toUserMessage } from '../lib/apiError.js'
 import * as signalR from '@microsoft/signalr'
+import { getPollById, isPollOwner } from '../api/polls.js'
+import { hasUserCompletedPoll, loadPollStats } from '../api/votes.js'
+import { toUserMessage } from '../lib/apiError.js'
+import { getStoredUser } from '../lib/tokenStorage.js'
+
+function formatSubmittedAt(value) {
+  if (!value) {
+    return ''
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.valueOf())) {
+    return ''
+  }
+
+  return date.toLocaleString('ru-RU')
+}
 
 export default function PollStatsPage() {
-    const { id } = useParams()
-    const [poll, setPoll] = useState(null)
-    const [error, setError] = useState('')
+  const { id } = useParams()
+  const currentUser = getStoredUser()
 
-    useEffect(() => {
-        const load = async () => {
-            try {
-                const payload = await getPollById(id)
-                setPoll(payload)
-            } catch (err) {
-                setError(toUserMessage(err))
-            }
+  const [poll, setPoll] = useState(null)
+  const [stats, setStats] = useState({ totalResponses: 0, questions: [] })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      setLoading(true)
+      setError('')
+
+      try {
+        const payload = await getPollById(id)
+
+        if (cancelled) {
+          return
         }
 
+        setPoll(payload)
+        setStats(await loadPollStats(payload))
+      } catch (err) {
+        if (!cancelled) {
+          setError(toUserMessage(err))
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void load()
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl('https://localhost:7054/pollHub')
+      .withAutomaticReconnect()
+      .build()
+
+    connection.on('ReceiveStatsUpdate', (surveyId) => {
+      if (String(surveyId) === String(id)) {
         void load()
+      }
+    })
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl('https://localhost:7054/pollHub')
-            .withAutomaticReconnect()
-            .build()
+    void connection.start().catch(() => {})
 
-        connection.start()
-            .then(() => {
-                connection.on('ReceiveStatsUpdate', (surveyId) => {
-                    if (String(surveyId) === String(id)) {
-                        load()
-                    }
-                })
-            })
-            .catch(err => console.error('SignalR Error: ', err))
+    const onStorage = () => {
+      void load()
+    }
 
-        return () => {
-            connection.stop()
-        }
-    }, [id])
+    window.addEventListener('storage', onStorage)
 
+    return () => {
+      cancelled = true
+      window.removeEventListener('storage', onStorage)
+      void connection.stop()
+    }
+  }, [id])
+
+  const canSeeStats = useMemo(() => {
+    if (!poll) {
+      return false
+    }
+
+    return isPollOwner(poll, currentUser) || hasUserCompletedPoll(poll.id, currentUser)
+  }, [currentUser, poll])
+
+  if (loading) {
     return (
-        <section className="card">
-            <div className="card-head">
-                <h2>Статистика опроса (Live)</h2>
-                <Link to={`/polls/${id}`} className="soft-btn">Назад</Link>
-            </div>
-
-            {poll ? <p className="muted">Опрос: {poll.title}</p> : null}
-            {error ? <p className="error-box">{error}</p> : null}
-
-            <div className="stats-grid">
-                <div className="photo-placeholder">Живое обновление активно</div>
-                <div className="photo-placeholder">Данные обновятся при голосовании</div>
-            </div>
-        </section>
+      <section className="card">
+        <p className="muted">Загрузка статистики...</p>
+      </section>
     )
+  }
+
+  if (!poll) {
+    return (
+      <section className="card">
+        <p className="error-box">{error || 'Опрос не найден'}</p>
+        <Link to="/polls" className="soft-btn">
+          К списку
+        </Link>
+      </section>
+    )
+  }
+
+  if (!canSeeStats) {
+    return (
+      <section className="card">
+        <div className="card-head">
+          <h2>Статистика опроса</h2>
+          <Link to={`/polls/${id}`} className="soft-btn">
+            Назад
+          </Link>
+        </div>
+
+        <p className="muted">Опрос: {poll.title}</p>
+        <p className="error-box">Статистика доступна только автору опроса или пользователю после его прохождения.</p>
+      </section>
+    )
+  }
+
+  return (
+    <section className="card">
+      <div className="card-head">
+        <h2>Статистика опроса</h2>
+        <Link to={`/polls/${id}`} className="soft-btn">
+          Назад
+        </Link>
+      </div>
+
+      <p className="muted">Опрос: {poll.title}</p>
+      {error ? <p className="error-box">{error}</p> : null}
+
+      <div className="stats-summary">
+        <div className="stats-summary-card">
+          <span className="muted">Всего ответов</span>
+          <strong>{stats.totalResponses}</strong>
+        </div>
+        <div className="stats-summary-card">
+          <span className="muted">Вопросов</span>
+          <strong>{Array.isArray(poll.questions) ? poll.questions.length : 0}</strong>
+        </div>
+      </div>
+
+      {!stats.totalResponses ? (
+        <div className="photo-placeholder large">Пока нет ответов. Статистика появится после прохождения опроса.</div>
+      ) : (
+        <div className="stats-question-list">
+          {stats.questions.map((question, index) => (
+            <article key={question.key} className="stats-question-card">
+              <div className="card-head">
+                <h3>Вопрос {index + 1}</h3>
+                <span className="muted">Ответов: {question.totalAnswers}</span>
+              </div>
+
+              <p>{question.text}</p>
+
+              {question.type === 'choice' ? (
+                <>
+                  <div className="stats-option-list">
+                    {question.optionStats.map((option) => (
+                      <div key={option.text} className="stats-option-row">
+                        <div className="stats-option-head">
+                          <span>{option.text}</span>
+                          <span className="muted">
+                            {option.count} ({option.percent}%)
+                          </span>
+                        </div>
+                        <div className="stats-bar-track">
+                          <div className="stats-bar-fill" style={{ width: `${option.percent}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {question.customAnswers.length ? (
+                    <div className="stats-answer-list">
+                      {question.customAnswers.map((answer, answerIndex) => (
+                        <div key={`${question.key}_custom_${answerIndex}`} className="stats-answer-item">
+                          <p>{answer.text}</p>
+                          <span className="stats-answer-meta">
+                            {answer.responder}
+                            {answer.submittedAt ? `, ${formatSubmittedAt(answer.submittedAt)}` : ''}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </>
+              ) : question.textAnswers.length ? (
+                <div className="stats-answer-list">
+                  {question.textAnswers.map((answer, answerIndex) => (
+                    <div key={`${question.key}_text_${answerIndex}`} className="stats-answer-item">
+                      <p>{answer.text}</p>
+                      <span className="stats-answer-meta">
+                        {answer.responder}
+                        {answer.submittedAt ? `, ${formatSubmittedAt(answer.submittedAt)}` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">Пока нет текстовых ответов.</p>
+              )}
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
 }

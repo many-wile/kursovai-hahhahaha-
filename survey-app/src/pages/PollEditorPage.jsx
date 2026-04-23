@@ -1,6 +1,6 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { createPoll, getPollById, updatePoll } from '../api/polls.js'
+import { createPoll, getPollById, POLL_QUESTION_TYPES, updatePoll } from '../api/polls.js'
 import { getAttachmentPreviewUrl, isImageAttachment, uploadAttachment } from '../api/files.js'
 import { toUserMessage } from '../lib/apiError.js'
 import { useToast } from '../contexts/ToastContext.jsx'
@@ -11,8 +11,78 @@ const FRAME_HEIGHT = 900
 const MIN_ZOOM = 1
 const MAX_ZOOM = 3.5
 
+const MIN_TITLE_LENGTH = 5
+const MAX_QUESTIONS = 20
+const MAX_QUESTION_LENGTH = 280
+const MIN_OPTIONS_PER_QUESTION = 2
+const MAX_OPTIONS_PER_QUESTION = 10
+const MAX_OPTION_LENGTH = 120
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
+}
+
+function createLocalId(prefix = 'id') {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `${prefix}_${crypto.randomUUID().slice(0, 8)}`
+  }
+
+  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`
+}
+
+function createDraftOption(text = '', id = null) {
+  return {
+    id,
+    clientId: createLocalId('opt'),
+    text,
+  }
+}
+
+function getDefaultChoiceOptions() {
+  return [createDraftOption('Да'), createDraftOption('Нет')]
+}
+
+function createDraftQuestion({
+  id = null,
+  text = '',
+  type = POLL_QUESTION_TYPES.CHOICE,
+  options = null,
+} = {}) {
+  const normalizedType = type === POLL_QUESTION_TYPES.TEXT ? POLL_QUESTION_TYPES.TEXT : POLL_QUESTION_TYPES.CHOICE
+
+  const normalizedOptions = normalizedType === POLL_QUESTION_TYPES.CHOICE
+    ? (Array.isArray(options) ? options : getDefaultChoiceOptions())
+      .map((option) => createDraftOption(String(option?.text ?? option ?? '').trim(), option?.id ?? null))
+    : []
+
+  while (normalizedType === POLL_QUESTION_TYPES.CHOICE && normalizedOptions.length < MIN_OPTIONS_PER_QUESTION) {
+    normalizedOptions.push(createDraftOption(''))
+  }
+
+  return {
+    id,
+    clientId: createLocalId('q'),
+    text,
+    type: normalizedType,
+    options: normalizedOptions,
+  }
+}
+
+function normalizeQuestionsForEditor(questions) {
+  if (!Array.isArray(questions) || !questions.length) {
+    return [createDraftQuestion()]
+  }
+
+  const normalized = questions.map((question) =>
+    createDraftQuestion({
+      id: question?.id ?? null,
+      text: String(question?.text ?? '').trim(),
+      type: question?.type,
+      options: question?.options,
+    }),
+  )
+
+  return normalized.length ? normalized : [createDraftQuestion()]
 }
 
 function isEditableImage(file) {
@@ -42,12 +112,10 @@ function getCoverBounds(imageMeta, zoom) {
 
 function loadImage(url) {
   return new Promise((resolve, reject) => {
-    const img = new Image()
-
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('Не удалось загрузить изображение.'))
-
-    img.src = url
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('Не удалось загрузить изображение.'))
+    image.src = url
   })
 }
 
@@ -99,6 +167,7 @@ export default function PollEditorPage({ mode }) {
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [questions, setQuestions] = useState(() => normalizeQuestionsForEditor([]))
   const [attachment, setAttachment] = useState({ id: null, name: '' })
   const [selectedFile, setSelectedFile] = useState(null)
   const [loading, setLoading] = useState(mode === 'edit')
@@ -148,6 +217,7 @@ export default function PollEditorPage({ mode }) {
         setTitle(poll.title || '')
         setDescription(poll.description || '')
         setAttachment({ id: poll.attachmentId, name: poll.attachmentName })
+        setQuestions(normalizeQuestionsForEditor(poll.questions))
       } catch (err) {
         const message = toUserMessage(err)
         setError(message)
@@ -175,19 +245,15 @@ export default function PollEditorPage({ mode }) {
     let cancelled = false
     const image = new Image()
     image.onload = () => {
-      if (cancelled) {
-        return
+      if (!cancelled) {
+        setImageMeta({ width: image.naturalWidth, height: image.naturalHeight })
       }
-
-      setImageMeta({ width: image.naturalWidth, height: image.naturalHeight })
     }
-
     image.onerror = () => {
       if (!cancelled) {
         setImageMeta(null)
       }
     }
-
     image.src = objectUrl
 
     return () => {
@@ -214,27 +280,8 @@ export default function PollEditorPage({ mode }) {
 
     const observer = new ResizeObserver(update)
     observer.observe(element)
-
     return () => observer.disconnect()
   }, [imagePreviewUrl, attachment.id])
-
-  const onFrameMouseDown = (event) => {
-    if (!imagePreviewUrl) {
-      return
-    }
-
-    event.preventDefault()
-
-    dragRef.current = {
-      active: true,
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: crop.offsetX,
-      originY: crop.offsetY,
-    }
-
-    setIsDragging(true)
-  }
 
   useEffect(() => {
     if (!isDragging) {
@@ -265,12 +312,27 @@ export default function PollEditorPage({ mode }) {
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
-
     return () => {
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
     }
   }, [constrainCrop, frameSize.height, frameSize.width, isDragging])
+
+  const onFrameMouseDown = (event) => {
+    if (!imagePreviewUrl) {
+      return
+    }
+
+    event.preventDefault()
+    dragRef.current = {
+      active: true,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: crop.offsetX,
+      originY: crop.offsetY,
+    }
+    setIsDragging(true)
+  }
 
   const validateSelectedFile = (file) => {
     if (!file) {
@@ -287,7 +349,7 @@ export default function PollEditorPage({ mode }) {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      setError('Файл превышает 8 MB.')
+      setError('Файл превышает 8 МБ.')
       pushToast('warning', 'Файл слишком большой')
       return false
     }
@@ -311,18 +373,238 @@ export default function PollEditorPage({ mode }) {
     return buildCoverImageFile(selectedFile, crop, imageMeta)
   }
 
+  const addQuestion = (afterIndex = questions.length - 1) => {
+    if (questions.length >= MAX_QUESTIONS) {
+      pushToast('warning', `Максимум ${MAX_QUESTIONS} вопросов в одном опросе`)
+      return
+    }
+
+    setQuestions((prev) => {
+      const copy = [...prev]
+      copy.splice(afterIndex + 1, 0, createDraftQuestion())
+      return copy
+    })
+  }
+
+  const removeQuestion = (index) => {
+    setQuestions((prev) => {
+      if (prev.length <= 1) {
+        return [createDraftQuestion()]
+      }
+
+      return prev.filter((_, itemIndex) => itemIndex !== index)
+    })
+  }
+
+  const duplicateQuestion = (index) => {
+    if (questions.length >= MAX_QUESTIONS) {
+      pushToast('warning', `Максимум ${MAX_QUESTIONS} вопросов в одном опросе`)
+      return
+    }
+
+    setQuestions((prev) => {
+      const source = prev[index]
+      const copy = [...prev]
+      copy.splice(
+        index + 1,
+        0,
+        createDraftQuestion({
+          text: source?.text || '',
+          type: source?.type,
+          options: source?.options || [],
+        }),
+      )
+      return copy
+    })
+  }
+
+  const moveQuestion = (index, direction) => {
+    const target = index + direction
+    setQuestions((prev) => {
+      if (target < 0 || target >= prev.length) {
+        return prev
+      }
+
+      const copy = [...prev]
+      const temp = copy[index]
+      copy[index] = copy[target]
+      copy[target] = temp
+      return copy
+    })
+  }
+
+  const updateQuestionText = (index, value) => {
+    setQuestions((prev) => {
+      const copy = [...prev]
+      copy[index] = { ...copy[index], text: value }
+      return copy
+    })
+  }
+
+  const setQuestionType = (index, type) => {
+    setQuestions((prev) => {
+      const copy = [...prev]
+      const question = copy[index]
+
+      if (!question) {
+        return prev
+      }
+
+      if (type === POLL_QUESTION_TYPES.TEXT) {
+        copy[index] = {
+          ...question,
+          type: POLL_QUESTION_TYPES.TEXT,
+          options: [],
+        }
+      } else {
+        const options = question.options?.length ? [...question.options] : getDefaultChoiceOptions()
+
+        while (options.length < MIN_OPTIONS_PER_QUESTION) {
+          options.push(createDraftOption(''))
+        }
+
+        copy[index] = {
+          ...question,
+          type: POLL_QUESTION_TYPES.CHOICE,
+          options,
+        }
+      }
+
+      return copy
+    })
+  }
+
+  const addOption = (questionIndex) => {
+    setQuestions((prev) => {
+      const copy = [...prev]
+      const question = copy[questionIndex]
+      if (!question || question.type !== POLL_QUESTION_TYPES.CHOICE) {
+        return prev
+      }
+
+      if (question.options.length >= MAX_OPTIONS_PER_QUESTION) {
+        pushToast('warning', `Максимум ${MAX_OPTIONS_PER_QUESTION} вариантов для одного вопроса`)
+        return prev
+      }
+
+      copy[questionIndex] = {
+        ...question,
+        options: [...question.options, createDraftOption('')],
+      }
+
+      return copy
+    })
+  }
+
+  const removeOption = (questionIndex, optionIndex) => {
+    setQuestions((prev) => {
+      const copy = [...prev]
+      const question = copy[questionIndex]
+
+      if (!question || question.type !== POLL_QUESTION_TYPES.CHOICE) {
+        return prev
+      }
+
+      if (question.options.length <= MIN_OPTIONS_PER_QUESTION) {
+        return prev
+      }
+
+      copy[questionIndex] = {
+        ...question,
+        options: question.options.filter((_, idx) => idx !== optionIndex),
+      }
+
+      return copy
+    })
+  }
+
+  const updateOptionText = (questionIndex, optionIndex, value) => {
+    setQuestions((prev) => {
+      const copy = [...prev]
+      const question = copy[questionIndex]
+      if (!question || question.type !== POLL_QUESTION_TYPES.CHOICE) {
+        return prev
+      }
+
+      const options = [...question.options]
+      options[optionIndex] = { ...options[optionIndex], text: value }
+      copy[questionIndex] = { ...question, options }
+      return copy
+    })
+  }
+
+  const resetCrop = () => {
+    setCrop({ zoom: 1, offsetX: 0, offsetY: 0 })
+  }
+
   const onSubmit = async (event) => {
-      event.preventDefault()
-      if (title.trim().length < 5) {
-          pushToast('warning', 'Название опроса должно быть не короче 5 символов')
-          setBusy(false)
-          return
+    event.preventDefault()
+
+    const trimmedTitle = title.trim()
+    const trimmedDescription = description.trim()
+
+    if (trimmedTitle.length < MIN_TITLE_LENGTH) {
+      pushToast('warning', `Название опроса должно быть не короче ${MIN_TITLE_LENGTH} символов`)
+      return
+    }
+
+    if (!trimmedDescription.length) {
+      pushToast('warning', 'Заполните описание опроса')
+      return
+    }
+
+    const normalizedQuestions = []
+
+    for (let i = 0; i < questions.length; i += 1) {
+      const question = questions[i]
+      const text = String(question?.text || '').trim()
+
+      if (!text) {
+        pushToast('warning', `Заполните текст вопроса №${i + 1}`)
+        return
       }
-      if (description.trim().length === 0) {
-          pushToast('warning', 'Пожалуйста, заполните описание опроса')
-          setBusy(false)
-          return
+
+      if (text.length > MAX_QUESTION_LENGTH) {
+        pushToast('warning', `Вопрос №${i + 1} слишком длинный`)
+        return
       }
+
+      if (question.type === POLL_QUESTION_TYPES.CHOICE) {
+        const options = question.options
+          .map((option) => ({ text: String(option?.text || '').trim() }))
+          .filter((option) => option.text.length > 0)
+
+        if (options.length < MIN_OPTIONS_PER_QUESTION) {
+          pushToast('warning', `Для вопроса №${i + 1} нужно минимум ${MIN_OPTIONS_PER_QUESTION} варианта`)
+          return
+        }
+
+        if (options.some((option) => option.text.length > MAX_OPTION_LENGTH)) {
+          pushToast('warning', `Вариант ответа в вопросе №${i + 1} слишком длинный`)
+          return
+        }
+
+        normalizedQuestions.push({
+          id: question.id,
+          text,
+          type: POLL_QUESTION_TYPES.CHOICE,
+          options,
+        })
+      } else {
+        normalizedQuestions.push({
+          id: question.id,
+          text,
+          type: POLL_QUESTION_TYPES.TEXT,
+          options: [],
+        })
+      }
+    }
+
+    if (!normalizedQuestions.length) {
+      pushToast('warning', 'Добавьте хотя бы один вопрос')
+      return
+    }
+
     setBusy(true)
     setError('')
 
@@ -333,8 +615,9 @@ export default function PollEditorPage({ mode }) {
       }
 
       const payload = {
-        title: title.trim(),
-        description: description.trim(),
+        title: trimmedTitle,
+        description: trimmedDescription,
+        questions: normalizedQuestions,
       }
 
       if (mode === 'edit' && id) {
@@ -346,13 +629,13 @@ export default function PollEditorPage({ mode }) {
           setAttachment({ id: uploaded.id, name: uploaded.name })
         }
 
-        pushToast('success', 'Опрос обновлён')
+        pushToast('success', 'Опрос обновлен')
       } else {
         const created = await createPoll(payload)
 
         if (selectedFile) {
           if (!created?.id) {
-            throw new Error('Опрос создан, но id не получен для загрузки изображения.')
+            throw new Error('Опрос создан, но не получен id для загрузки изображения')
           }
 
           const processedFile = await resolveUploadFile()
@@ -372,12 +655,18 @@ export default function PollEditorPage({ mode }) {
     }
   }
 
-  const resetCrop = () => {
-    setCrop({ zoom: 1, offsetX: 0, offsetY: 0 })
-  }
-
   const previewOffsetX = crop.offsetX * (frameSize.width / FRAME_WIDTH)
   const previewOffsetY = crop.offsetY * (frameSize.height / FRAME_HEIGHT)
+  const pollPreviewImage =
+    imagePreviewUrl || (attachment?.id && isImageAttachment(attachment.name) ? getAttachmentPreviewUrl(attachment.id) : '')
+
+  const previewQuestions = questions
+    .map((question) => ({
+      text: String(question.text || '').trim(),
+      type: question.type,
+      options: question.options?.map((option) => String(option?.text || '').trim()).filter(Boolean) || [],
+    }))
+    .filter((question) => question.text.length > 0)
 
   if (loading) {
     return (
@@ -419,7 +708,7 @@ export default function PollEditorPage({ mode }) {
               <button type="button" className="soft-btn" onClick={resetCrop}>
                 Сбросить
               </button>
-              <span className="muted">Перетащи изображение мышкой внутри рамки</span>
+              <span className="muted">Перетащите изображение мышкой внутри рамки</span>
             </div>
           </div>
 
@@ -452,12 +741,7 @@ export default function PollEditorPage({ mode }) {
 
         <label>
           Описание
-          <textarea
-            rows={6}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            maxLength={1000}
-          />
+          <textarea rows={6} value={description} onChange={(event) => setDescription(event.target.value)} maxLength={1000} />
         </label>
 
         <label>
@@ -469,16 +753,154 @@ export default function PollEditorPage({ mode }) {
           />
         </label>
 
-        {attachment?.id && !selectedFile ? (
-          <p className="muted">Текущий файл: {attachment.name || attachment.id}</p>
-        ) : null}
-
+        {attachment?.id && !selectedFile ? <p className="muted">Текущий файл: {attachment.name || attachment.id}</p> : null}
         {selectedFile ? <p className="muted">Выбран файл: {selectedFile.name}</p> : null}
+
+        <div className="editor-questions-block">
+          <div className="card-head">
+            <h3>Вопросы</h3>
+            <button type="button" className="soft-btn" onClick={() => addQuestion(questions.length - 1)}>
+              Добавить вопрос
+            </button>
+          </div>
+
+          <p className="muted">Минимум 1 вопрос, максимум {MAX_QUESTIONS}.</p>
+
+          <div className="editor-questions-list">
+            {questions.map((question, index) => (
+              <article key={question.clientId} className="editor-question-item">
+                <div className="editor-question-head">
+                  <b>Вопрос {index + 1}</b>
+                  <div className="actions-row">
+                    <button type="button" className="soft-btn" onClick={() => moveQuestion(index, -1)} disabled={index === 0}>
+                      Вверх
+                    </button>
+                    <button
+                      type="button"
+                      className="soft-btn"
+                      onClick={() => moveQuestion(index, 1)}
+                      disabled={index === questions.length - 1}
+                    >
+                      Вниз
+                    </button>
+                    <button type="button" className="soft-btn" onClick={() => duplicateQuestion(index)}>
+                      Дубль
+                    </button>
+                    <button type="button" className="danger-btn" onClick={() => removeQuestion(index)}>
+                      Удалить
+                    </button>
+                  </div>
+                </div>
+
+                <textarea
+                  rows={3}
+                  maxLength={MAX_QUESTION_LENGTH}
+                  placeholder="Текст вопроса"
+                  value={question.text}
+                  onChange={(event) => updateQuestionText(index, event.target.value)}
+                />
+                <p className="muted">{question.text.length}/{MAX_QUESTION_LENGTH}</p>
+
+                <div className="editor-question-mode">
+                  <button
+                    type="button"
+                    className={`soft-btn${question.type === POLL_QUESTION_TYPES.CHOICE ? ' is-active' : ''}`}
+                    onClick={() => setQuestionType(index, POLL_QUESTION_TYPES.CHOICE)}
+                  >
+                    Варианты ответа
+                  </button>
+                  <button
+                    type="button"
+                    className={`soft-btn${question.type === POLL_QUESTION_TYPES.TEXT ? ' is-active' : ''}`}
+                    onClick={() => setQuestionType(index, POLL_QUESTION_TYPES.TEXT)}
+                  >
+                    Свободный ответ
+                  </button>
+                </div>
+
+                {question.type === POLL_QUESTION_TYPES.CHOICE ? (
+                  <div className="editor-option-list">
+                    {question.options.map((option, optionIndex) => (
+                      <div key={option.clientId} className="editor-option-item">
+                        <input
+                          type="text"
+                          value={option.text}
+                          maxLength={MAX_OPTION_LENGTH}
+                          placeholder={`Вариант ${optionIndex + 1}`}
+                          onChange={(event) => updateOptionText(index, optionIndex, event.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="danger-btn"
+                          onClick={() => removeOption(index, optionIndex)}
+                          disabled={question.options.length <= MIN_OPTIONS_PER_QUESTION}
+                        >
+                          Удалить
+                        </button>
+                      </div>
+                    ))}
+
+                    <div className="actions-row">
+                      <button type="button" className="soft-btn" onClick={() => addOption(index)}>
+                        Добавить вариант
+                      </button>
+                      <span className="muted">
+                        Минимум {MIN_OPTIONS_PER_QUESTION}, максимум {MAX_OPTIONS_PER_QUESTION}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="muted">Для этого вопроса пользователь вводит свой текстовый ответ.</p>
+                )}
+              </article>
+            ))}
+          </div>
+        </div>
 
         <button type="submit" className="gold-btn" disabled={busy}>
           {busy ? 'Сохраняем...' : 'Сохранить'}
         </button>
       </form>
+
+      <div className="editor-poll-preview">
+        <h3>Предпросмотр опроса</h3>
+        <article className="poll-card poll-card-preview">
+          {pollPreviewImage ? (
+            <img className="poll-cover-image" src={pollPreviewImage} alt={title.trim() || 'Обложка опроса'} />
+          ) : (
+            <div className="photo-placeholder">Место для фото обложки</div>
+          )}
+
+          <h3>{title.trim() || 'Название опроса'}</h3>
+          <p>{description.trim() || 'Описание опроса'}</p>
+          <p className="muted">Вопросов: {previewQuestions.length}</p>
+
+          {previewQuestions.length ? (
+            <ol className="poll-question-preview-list">
+              {previewQuestions.map((question, index) => (
+                <li key={`${index}_${question.text}`} className="poll-question-preview-item">
+                  <b>{question.text}</b>
+                  {question.type === POLL_QUESTION_TYPES.CHOICE ? (
+                    <ul className="poll-option-preview-list">
+                      {question.options.map((option) => (
+                        <li key={`${index}_${option}`}>{option}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="muted">Свободный ответ пользователя</p>
+                  )}
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="muted">Добавьте вопросы, чтобы увидеть их в предпросмотре.</p>
+          )}
+
+          <p className="muted">
+            {selectedFile ? `Файл: ${selectedFile.name}` : attachment?.name ? `Файл: ${attachment.name}` : 'Файл не прикреплен'}
+          </p>
+        </article>
+      </div>
 
       {error ? <p className="error-box">{error}</p> : null}
     </section>

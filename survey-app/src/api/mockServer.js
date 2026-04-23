@@ -55,6 +55,10 @@ function createInitialDb() {
         attachmentId: null,
         attachmentName: '',
         createdAt: now,
+        questions: [
+          { id: 'q_1_1', text: 'Какой жанр вы слушаете чаще всего?', type: 'choice', options: [{ text: 'Рок' }, { text: 'Поп' }, { text: 'Рэп' }] },
+          { id: 'q_1_2', text: 'Где вы обычно слушаете музыку?', type: 'choice', options: [{ text: 'Дома' }, { text: 'В дороге' }] },
+        ],
       },
       {
         id: 'poll_2',
@@ -63,6 +67,7 @@ function createInitialDb() {
         attachmentId: null,
         attachmentName: '',
         createdAt: now,
+        questions: [{ id: 'q_2_1', text: 'Какой жанр кино вам нравится больше?', type: 'choice', options: [{ text: 'Комедия' }, { text: 'Боевик' }, { text: 'Драма' }] }],
       },
       {
         id: 'poll_3',
@@ -71,6 +76,7 @@ function createInitialDb() {
         attachmentId: null,
         attachmentName: '',
         createdAt: now,
+        questions: [{ id: 'q_3_1', text: 'Онлайн или оффлайн обучение?', type: 'choice', options: [{ text: 'Онлайн' }, { text: 'Оффлайн' }] }],
       },
     ],
   }
@@ -196,6 +202,32 @@ function validateFile(file) {
   if (file.size > MAX_FILE_SIZE_BYTES) {
     throw new ApiError('Файл слишком большой (максимум 8 MB).', 400)
   }
+}
+
+function normalizeQuestions(rawQuestions) {
+  if (!Array.isArray(rawQuestions)) {
+    return []
+  }
+
+  return rawQuestions
+    .map((question) => {
+      const options = Array.isArray(question?.options)
+        ? question.options
+          .map((option) => ({ id: option?.id || generateId('opt'), text: String(option?.text || option || '').trim() }))
+          .filter((option) => option.text.length > 0)
+        : []
+
+      const explicitType = String(question?.type || '').trim().toLowerCase()
+      const type = explicitType === 'text' ? 'text' : options.length ? 'choice' : 'text'
+
+      return {
+        id: question?.id || generateId('q'),
+        text: String(question?.text || '').trim(),
+        type,
+        options: type === 'choice' ? options : [],
+      }
+    })
+    .filter((question) => question.text.length > 0)
 }
 
 function buildAuthResponse(db, session) {
@@ -364,6 +396,7 @@ export async function mockRequest(path, options = {}) {
       attachmentId: payload.attachmentId || null,
       attachmentName: payload.attachmentName || '',
       createdAt: new Date().toISOString(),
+      questions: normalizeQuestions(payload.questions),
     }
 
     db.polls.push(poll)
@@ -393,6 +426,7 @@ export async function mockRequest(path, options = {}) {
       poll.description = (payload.description || '').trim()
       poll.attachmentId = payload.attachmentId || null
       poll.attachmentName = payload.attachmentName || ''
+      poll.questions = normalizeQuestions(payload.questions)
 
       saveDb(db)
 
@@ -435,6 +469,14 @@ export async function mockRequest(path, options = {}) {
     return {
       id: file.id,
       fileName: file.fileName,
+    }
+  }
+
+  const voteMatch = pathname.match(/^\/Votes\/([^/]+)$/)
+  if (voteMatch && verb === 'POST') {
+    return {
+      success: true,
+      message: 'Голос принят',
     }
   }
 

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { logoutUser } from '../api/auth.js'
 import { getStoredTokens, getStoredUser } from '../lib/tokenStorage.js'
@@ -6,15 +6,8 @@ import {
   getStoredProfilePhoto,
   PROFILE_PHOTO_EVENT,
 } from '../lib/profilePhotoStorage.js'
+import defaultAvatar from '../assets/default-avatar.svg'
 import { useToast } from '../contexts/ToastContext.jsx'
-
-function UserIcon() {
-  return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z" />
-    </svg>
-  )
-}
 
 export default function Layout({ children }) {
   const navigate = useNavigate()
@@ -22,11 +15,15 @@ export default function Layout({ children }) {
   const { accessToken } = getStoredTokens()
   const { pushToast } = useToast()
 
-  const [profilePhoto, setProfilePhoto] = useState(getStoredProfilePhoto())
+  const [profilePhoto, setProfilePhoto] = useState(() => getStoredProfilePhoto(user))
+
+  useEffect(() => {
+    setProfilePhoto(getStoredProfilePhoto(user))
+  }, [accessToken, user?.id, user?.Id, user?.email, user?.Email])
 
   useEffect(() => {
     const onPhotoUpdate = () => {
-      setProfilePhoto(getStoredProfilePhoto())
+      setProfilePhoto(getStoredProfilePhoto(getStoredUser()))
     }
 
     window.addEventListener(PROFILE_PHOTO_EVENT, onPhotoUpdate)
@@ -42,6 +39,8 @@ export default function Layout({ children }) {
       pushToast('error', 'Не удалось выполнить выход')
     }
   }
+
+  const avatarSrc = profilePhoto || defaultAvatar
 
   return (
     <div className="app-shell">
@@ -60,7 +59,7 @@ export default function Layout({ children }) {
           {accessToken ? (
             <>
               <NavLink to="/profile" className="user-chip">
-                {user?.name || user?.email || 'Профиль'}
+                {user?.name || user?.Name || user?.email || user?.Email || 'Профиль'}
               </NavLink>
               <button type="button" className="gold-btn" onClick={onLogout}>
                 Выйти
@@ -78,8 +77,8 @@ export default function Layout({ children }) {
             aria-label={accessToken ? 'Открыть профиль' : 'Войти в аккаунт'}
             title={accessToken ? 'Профиль' : 'Войти'}
           >
-            <span className={`avatar-circle${profilePhoto ? ' has-photo' : ''}`}>
-              {profilePhoto ? <img src={profilePhoto} alt="Фото профиля" className="avatar-image" /> : <UserIcon />}
+            <span className={`avatar-circle${profilePhoto ? ' has-photo' : ' is-default'}`}>
+              <img src={avatarSrc} alt="Аватар" className="avatar-image" />
             </span>
           </Link>
         </div>

@@ -1,10 +1,10 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { deletePoll, getPolls } from '../api/polls.js'
+import { deletePoll, getPolls, isPollOwner } from '../api/polls.js'
 import { downloadAttachment, getAttachmentPreviewUrl, isImageAttachment } from '../api/files.js'
 import { toUserMessage } from '../lib/apiError.js'
 import { useToast } from '../contexts/ToastContext.jsx'
-import { getStoredTokens } from '../lib/tokenStorage.js'
+import { getStoredTokens, getStoredUser } from '../lib/tokenStorage.js'
 
 function downloadBlob(blob, fileName) {
   const url = URL.createObjectURL(blob)
@@ -22,6 +22,7 @@ function hasCoverImage(poll) {
 export default function PollsPage() {
   const { pushToast } = useToast()
   const { accessToken } = getStoredTokens()
+  const currentUser = getStoredUser()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const initialQuery = searchParams.get('query') || ''
@@ -140,16 +141,22 @@ export default function PollsPage() {
       {loading ? <p className="muted">Загрузка...</p> : null}
 
       <div className="poll-grid">
-        {items.map((poll) => (
-          <article key={poll.id} className="poll-card">
-            {hasCoverImage(poll) ? (
-              <img className="poll-cover-image" src={getAttachmentPreviewUrl(poll.attachmentId)} alt={poll.title} loading="lazy" />
-            ) : (
-              <div className="photo-placeholder">Место для фото обложки</div>
-            )}
+        {items.map((poll) => {
+          const canManage = accessToken && isPollOwner(poll, currentUser)
 
-            <h3>{poll.title}</h3>
+          return (
+          <article key={poll.id} className="poll-card">
+            <Link to={`/polls/${poll.id}`} className="poll-card-link-block">
+              {hasCoverImage(poll) ? (
+                <img className="poll-cover-image" src={getAttachmentPreviewUrl(poll.attachmentId)} alt={poll.title} loading="lazy" />
+              ) : (
+                <div className="photo-placeholder">Место для фото обложки</div>
+              )}
+
+              <h3>{poll.title}</h3>
+            </Link>
             <p>{poll.description || 'Описание отсутствует'}</p>
+            <p className="muted">Вопросов: {Array.isArray(poll.questions) ? poll.questions.length : 0}</p>
             <p className="muted">
               {poll.attachmentId ? `Файл: ${poll.attachmentName || poll.attachmentId}` : 'Файл не прикреплён'}
             </p>
@@ -158,25 +165,27 @@ export default function PollsPage() {
               <Link className="soft-btn" to={`/polls/${poll.id}`}>
                 Подробнее
               </Link>
-              <button type="button" className="soft-btn" onClick={() => onDownload(poll)}>
-                Скачать
-              </button>
+              {poll.attachmentId ? (
+                <button type="button" className="soft-btn" onClick={() => onDownload(poll)}>
+                  Скачать файл
+                </button>
+              ) : null}
               <Link className="soft-btn" to={`/polls/${poll.id}/stats`}>
                 Статистика
               </Link>
-              {accessToken ? (
+              {canManage ? (
                 <Link className="soft-btn" to={`/polls/${poll.id}/edit`}>
                   Редактировать
                 </Link>
               ) : null}
-              {accessToken ? (
+              {canManage ? (
                 <button type="button" className="danger-btn" onClick={() => onDelete(poll.id)}>
                   Удалить
                 </button>
               ) : null}
             </div>
           </article>
-        ))}
+        )})}
       </div>
 
       {!loading && !items.length ? <p className="muted">По запросу ничего не найдено.</p> : null}

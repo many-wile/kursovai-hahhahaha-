@@ -35,8 +35,13 @@ export function isImageAttachment(fileName = '') {
   return /\.(png|jpe?g|webp|gif)$/i.test(String(fileName))
 }
 
+function isServerSurveyId(surveyId) {
+  const parsed = Number(surveyId)
+  return Number.isInteger(parsed) && parsed > 0
+}
+
 export function getAttachmentPreviewUrl(surveyId) {
-  if (!surveyId) {
+  if (!surveyId || !isServerSurveyId(surveyId)) {
     return ''
   }
 
@@ -48,6 +53,10 @@ export function getAttachmentPreviewUrl(surveyId) {
 export async function uploadAttachment(surveyId, file) {
   if (!surveyId || !file) {
     throw new Error('Для загрузки фото нужен id опроса и выбранный файл.')
+  }
+
+  if (!isServerSurveyId(surveyId)) {
+    throw new Error('Локальный черновик не может загрузить файл в backend. Сначала сохраните опрос на сервер.')
   }
 
   const formData = new FormData()
@@ -71,6 +80,10 @@ export async function uploadAttachment(surveyId, file) {
 export async function downloadAttachment(surveyId) {
   if (!surveyId) {
     throw new Error('Не указан id опроса для скачивания изображения.')
+  }
+
+  if (!isServerSurveyId(surveyId)) {
+    throw new Error('Этот файл существует только в локальном черновике.')
   }
 
   const url = getAttachmentPreviewUrl(surveyId)

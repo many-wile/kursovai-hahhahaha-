@@ -46,29 +46,49 @@ public class SurveyRepository : ISurveyRepository
 
     public async Task<SurveyItem> CreateAsync(SurveyItem item)
     {
-        _context.Surveys.Add(item);
-        await _context.SaveChangesAsync();
+        await _context.Surveys.AddAsync(item);
         return item;
     }
 
     public async Task<SurveyItem?> UpdateAsync(int id, SurveyItem item)
     {
-        var existing = await _context.Surveys.FindAsync(id);
-        if (existing == null) return null;
+        var existing = await _context.Surveys
+            .Include(s => s.Questions)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (existing == null)
+        {
+            return null;
+        }
 
         existing.Title = item.Title;
         existing.Description = item.Description;
-        await _context.SaveChangesAsync();
+        existing.ImagePath = item.ImagePath;
+
+        var oldQuestions = existing.Questions.ToList();
+        _context.Questions.RemoveRange(oldQuestions);
+        existing.Questions.Clear();
+
+        foreach (var question in item.Questions)
+        {
+            existing.Questions.Add(new Question
+            {
+                Text = question.Text
+            });
+        }
+
         return existing;
     }
 
     public async Task DeleteAsync(int id)
     {
-        var item = await _context.Surveys.FindAsync(id);
+        var item = await _context.Surveys
+            .Include(s => s.Questions)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
         if (item != null)
         {
             _context.Surveys.Remove(item);
-            await _context.SaveChangesAsync();
         }
     }
 }

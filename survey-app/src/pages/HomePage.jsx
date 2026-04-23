@@ -78,14 +78,17 @@ export default function HomePage() {
         <div className="poll-vertical-list">
           {items.map((poll) => (
             <article key={poll.id} className="vertical-card">
-              {hasCoverImage(poll) ? (
-                <img className="poll-cover-image" src={getAttachmentPreviewUrl(poll.attachmentId)} alt={poll.title} loading="lazy" />
-              ) : (
-                <div className="photo-placeholder">Место для фото опроса</div>
-              )}
+              <Link to={`/polls/${poll.id}`} className="poll-card-link-block">
+                {hasCoverImage(poll) ? (
+                  <img className="poll-cover-image" src={getAttachmentPreviewUrl(poll.attachmentId)} alt={poll.title} loading="lazy" />
+                ) : (
+                  <div className="photo-placeholder">Место для фото опроса</div>
+                )}
 
-              <h3>{poll.title}</h3>
+                <h3>{poll.title}</h3>
+              </Link>
               <p>{poll.description || 'Описание появится позже'}</p>
+              <p className="muted">Вопросов: {Array.isArray(poll.questions) ? poll.questions.length : 0}</p>
               <div className="inline-links">
                 <Link to={`/polls/${poll.id}`}>Подробнее</Link>
                 <Link to={`/polls/${poll.id}/stats`}>Статистика</Link>

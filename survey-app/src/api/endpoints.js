@@ -13,4 +13,6 @@ export const ENDPOINTS = {
 
   uploadFile: (id) => `/Surveys/${id}/upload-image`,
   downloadFile: (id) => `/Surveys/${id}/image`,
+  voteSubmit: (id) => `/Votes/${id}`,
+  voteStats: (id) => `/Votes/${id}/stats`,
 }
