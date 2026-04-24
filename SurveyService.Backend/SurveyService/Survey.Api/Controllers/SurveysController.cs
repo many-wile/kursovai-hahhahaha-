@@ -12,6 +12,8 @@ namespace Survey.Api.Controllers;
 [ApiController]
 public class SurveysController : ControllerBase
 {
+    private const string SurveyCacheVersionKey = "surveys_cache_version";
+
     public sealed class SurveyQuestionOptionRequest
     {
         public string Text { get; set; } = string.Empty;
@@ -75,12 +77,14 @@ public class SurveysController : ControllerBase
         [FromQuery] int pageSize = 10,
         [FromQuery] string query = "")
     {
-        var cacheKey = $"surveys_p{page}_s{pageSize}_q{query}";
+        var cacheKey = BuildSurveyCacheKey(page, pageSize, query);
 
         if (!_cache.TryGetValue(cacheKey, out PagedResult<SurveyItem>? result))
         {
             result = await _unitOfWork.Surveys.GetPagedAsync(page, pageSize, query);
-            var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
+            var cacheOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
+
             _cache.Set(cacheKey, result, cacheOptions);
         }
 
@@ -127,6 +131,7 @@ public class SurveysController : ControllerBase
 
         var created = await _unitOfWork.Surveys.CreateAsync(entity);
         await _unitOfWork.CompleteAsync();
+        InvalidateSurveyListCache();
 
         return CreatedAtAction(nameof(GetSurvey), new { id = created.Id }, ToSurveyResponse(created));
     }
@@ -162,6 +167,8 @@ public class SurveysController : ControllerBase
         }
 
         await _unitOfWork.CompleteAsync();
+        InvalidateSurveyListCache();
+
         return Ok(ToSurveyResponse(updated));
     }
 
@@ -171,6 +178,8 @@ public class SurveysController : ControllerBase
     {
         await _unitOfWork.Surveys.DeleteAsync(id);
         await _unitOfWork.CompleteAsync();
+        InvalidateSurveyListCache();
+
         return NoContent();
     }
 
@@ -201,10 +210,14 @@ public class SurveysController : ControllerBase
             return BadRequest("Неверный формат.");
         }
 
-        string fileName = $"survey_{id}{extension}";
-        string path = Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads", fileName);
+        var fileName = $"survey_{id}{extension}";
+        var path = Path.Combine(
+            _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"),
+            "uploads",
+            fileName);
 
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
         await using (var stream = new FileStream(path, FileMode.Create))
         {
             await file.CopyToAsync(stream);
@@ -212,6 +225,7 @@ public class SurveysController : ControllerBase
 
         survey.ImagePath = fileName;
         await _unitOfWork.CompleteAsync();
+        InvalidateSurveyListCache();
 
         return Ok(new { fileName });
     }
@@ -225,14 +239,20 @@ public class SurveysController : ControllerBase
             return NotFound();
         }
 
-        var path = Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads", survey.ImagePath);
+        var path = Path.Combine(
+            _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"),
+            "uploads",
+            survey.ImagePath);
+
         if (!System.IO.File.Exists(path))
         {
             return NotFound();
         }
 
         var fileBytes = await System.IO.File.ReadAllBytesAsync(path);
-        var mimeType = survey.ImagePath.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? "image/png" : "image/jpeg";
+        var mimeType = survey.ImagePath.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+            ? "image/png"
+            : "image/jpeg";
 
         return File(fileBytes, mimeType, survey.ImagePath);
     }
@@ -333,5 +353,27 @@ public class SurveysController : ControllerBase
                 })
                 .ToList()
         };
+    }
+
+    private string BuildSurveyCacheKey(int page, int pageSize, string query)
+    {
+        var version = _cache.GetOrCreate(SurveyCacheVersionKey, entry =>
+        {
+            entry.Priority = CacheItemPriority.NeverRemove;
+            return 1;
+        });
+
+        return $"surveys_v{version}_p{page}_s{pageSize}_q{query}";
+    }
+
+    private void InvalidateSurveyListCache()
+    {
+        var currentVersion = _cache.GetOrCreate(SurveyCacheVersionKey, entry =>
+        {
+            entry.Priority = CacheItemPriority.NeverRemove;
+            return 1;
+        });
+
+        _cache.Set(SurveyCacheVersionKey, currentVersion + 1);
     }
 }

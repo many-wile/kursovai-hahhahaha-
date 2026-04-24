@@ -7,48 +7,6 @@ import {
   saveStoredTokens,
   saveStoredUser,
 } from '../lib/tokenStorage.js'
-import { ApiError } from '../lib/apiError.js'
-
-const LOCAL_AUTH_FALLBACK_ENABLED = import.meta.env.VITE_LOCAL_AUTH_FALLBACK !== 'false'
-
-function shouldUseLocalFallback(error) {
-  if (!LOCAL_AUTH_FALLBACK_ENABLED) {
-    return false
-  }
-
-  if (error instanceof ApiError) {
-    return [404, 405, 501].includes(error.status)
-  }
-
-  return error instanceof TypeError
-}
-
-function normalizeEmail(value) {
-  return String(value || '').trim().toLowerCase()
-}
-
-function buildFallbackUser(data = {}) {
-  const email = String(data.email || '').trim()
-  const normalizedEmail = normalizeEmail(email)
-  const explicitName = String(data.name || data.userName || '').trim()
-  const fallbackName = normalizedEmail.split('@')[0] || 'User'
-
-  return {
-    id: normalizedEmail || `local_${Date.now()}`,
-    name: explicitName || fallbackName,
-    email,
-  }
-}
-
-function buildLocalSession(data = {}) {
-  const user = buildFallbackUser(data)
-
-  return {
-    accessToken: `local_${Date.now()}`,
-    refreshToken: '',
-    user,
-  }
-}
 
 function extractAccessToken(payload) {
   if (typeof payload === 'string') {
@@ -74,12 +32,10 @@ function extractUser(payload) {
   return payload.user || payload.profile || null
 }
 
-function saveSession(payload, fallbackUser = null) {
-  const previousTokens = getStoredTokens()
-
+function saveSession(payload) {
   const accessToken = extractAccessToken(payload)
-  const refreshToken = extractRefreshToken(payload) || previousTokens.refreshToken
-  const user = extractUser(payload) || fallbackUser
+  const refreshToken = extractRefreshToken(payload)
+  const user = extractUser(payload)
 
   if (!accessToken) {
     throw new Error('Server did not return access token.')
@@ -96,50 +52,32 @@ function saveSession(payload, fallbackUser = null) {
 }
 
 export async function registerUser(data) {
-  const fallbackUser = buildFallbackUser(data)
+  const payload = await request(ENDPOINTS.authRegister, {
+    method: 'POST',
+    auth: false,
+    body: data,
+  })
 
-  try {
-    const payload = await request(ENDPOINTS.authRegister, {
-      method: 'POST',
-      auth: false,
-      body: data,
-    })
-
-    return saveSession(payload, fallbackUser)
-  } catch (error) {
-    if (!shouldUseLocalFallback(error)) {
-      throw error
-    }
-
-    return saveSession(buildLocalSession(data), fallbackUser)
-  }
+  return saveSession(payload)
 }
 
 export async function loginUser(data) {
-  const fallbackUser = buildFallbackUser(data)
+  const payload = await request(ENDPOINTS.authLogin, {
+    method: 'POST',
+    auth: false,
+    body: data,
+  })
 
-  try {
-    const payload = await request(ENDPOINTS.authLogin, {
-      method: 'POST',
-      auth: false,
-      body: data,
-    })
-
-    return saveSession(payload, fallbackUser)
-  } catch (error) {
-    if (!shouldUseLocalFallback(error)) {
-      throw error
-    }
-
-    return saveSession(buildLocalSession(data), fallbackUser)
-  }
+  return saveSession(payload)
 }
 
 export async function logoutUser() {
+  const { refreshToken } = getStoredTokens()
+
   try {
     await request(ENDPOINTS.authLogout, {
       method: 'POST',
-      body: {},
+      body: { refreshToken },
     })
   } catch {
     // Logout should still clear local state even if server request fails.
@@ -148,4 +86,3 @@ export async function logoutUser() {
   clearStoredTokens()
   clearStoredUser()
 }
-

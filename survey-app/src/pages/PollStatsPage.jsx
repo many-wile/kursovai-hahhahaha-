@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import * as signalR from '@microsoft/signalr'
+import { POLL_HUB_URL } from '../api/endpoints.js'
 import { getPollById, isPollOwner } from '../api/polls.js'
 import { hasUserCompletedPoll, loadPollStats } from '../api/votes.js'
 import { toUserMessage } from '../lib/apiError.js'
@@ -58,7 +59,7 @@ export default function PollStatsPage() {
     void load()
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:7054/pollHub')
+      .withUrl(POLL_HUB_URL)
       .withAutomaticReconnect()
       .build()
 
@@ -121,7 +122,9 @@ export default function PollStatsPage() {
         </div>
 
         <p className="muted">Опрос: {poll.title}</p>
-        <p className="error-box">Статистика доступна только автору опроса или пользователю после его прохождения.</p>
+        <p className="error-box">
+          Статистика доступна только автору опроса или пользователю после его прохождения.
+        </p>
       </section>
     )
   }
@@ -150,7 +153,9 @@ export default function PollStatsPage() {
       </div>
 
       {!stats.totalResponses ? (
-        <div className="photo-placeholder large">Пока нет ответов. Статистика появится после прохождения опроса.</div>
+        <div className="photo-placeholder large">
+          Пока нет ответов. Статистика появится после прохождения опроса.
+        </div>
       ) : (
         <div className="stats-question-list">
           {stats.questions.map((question, index) => (

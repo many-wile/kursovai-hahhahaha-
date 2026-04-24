@@ -1,6 +1,8 @@
-﻿const env = import.meta.env
+const env = import.meta.env
 
 export const API_BASE_URL = 'https://localhost:7054/api'
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '')
+export const POLL_HUB_URL = `${API_ORIGIN}/pollHub`
 
 export const ENDPOINTS = {
   authLogin: env.VITE_AUTH_LOGIN_PATH || '/auth/login',
